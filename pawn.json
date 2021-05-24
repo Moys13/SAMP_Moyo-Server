@@ -1,0 +1,14 @@
+{
+	"user": "karimcambridge",
+	"repo": "SAMP-foreach",
+	"dependencies": [
+		"sampctl/samp-stdlib",
+		"karimcambridge/SAMP-foreach"
+	],
+	"runtime": {
+		"version": "0.3.7",
+		"mode": "server",
+		"rcon_password": "moyo",
+		"port": 7777
+	}
+}
