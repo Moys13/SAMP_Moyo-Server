@@ -2096,7 +2096,7 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 	{
  		/*if((GetTickCount() - DoubleClickCount) <= 180)
  		{
- 		    ShowPlayerDialog(ProjectEditor, DIALOG_EDITTEXT, DIALOG_STYLE_INPUT, "TDEditor - Español", "Introduzca el texto aquí:", ">>", "X");
+ 		    ShowPlayerDialog(ProjectEditor, DIALOG_EDITTEXT, DIALOG_STYLE_INPUT, "TDEditor - Espaï¿½ol", "Introduzca el texto aquï¿½:", ">>", "X");
  		    TDE_TextDrawSetString(TD_Status, "EDITMODE_NONE");
  		    EditMode = EDITMODE_NONE;
  		    IsPSel = false;
@@ -4282,7 +4282,7 @@ stock KeyToString(key)
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
 				case VK_KEYB2: LETTER = "\"";//32
-				//case VK_KEYB3: LETTER = "·";//33
+				//case VK_KEYB3: LETTER = "ï¿½";//33
 				case VK_KEYB4: LETTER = "$";//34
 				case VK_KEYB5: LETTER = "%";//35
 				case VK_KEYB6: LETTER = "&";//36
@@ -4295,7 +4295,7 @@ stock KeyToString(key)
 				case VK_OEM_PERIOD: LETTER = ":";
 				case VK_OEM_2: LETTER = "?";
 				case VK_OEM_4: LETTER = "?";
-				//case VK_OEM_5: LETTER = "ª";
+				//case VK_OEM_5: LETTER = "ï¿½";
 				case VK_OEM_6: LETTER = "[";
 				case VK_OEM_102: LETTER = ">";
 				case VK_NUMPAD0: LETTER = "0";
@@ -4365,7 +4365,7 @@ stock KeyToString(key)
 				case VK_OEM_2: LETTER = "]";
 				case VK_OEM_4: LETTER = "'";
 				case VK_OEM_5: LETTER = "|";
-				case VK_OEM_6: LETTER = "¡";
+				case VK_OEM_6: LETTER = "ï¿½";
 				case VK_OEM_102: LETTER = "<";
 				case VK_NUMPAD0: LETTER = "0";
 				case VK_NUMPAD1: LETTER = "1";
@@ -4425,7 +4425,7 @@ stock KeyToString(key)
 				case VK_KEYB0: LETTER = "=";//30
 				case VK_KEYB1: LETTER = "!";//!
 				case VK_KEYB2: LETTER = "\"";//32
-				//case VK_KEYB3: LETTER = "·";//33
+				//case VK_KEYB3: LETTER = "ï¿½";//33
 				case VK_KEYB4: LETTER = "$";//34
 				case VK_KEYB5: LETTER = "%";//35
 				case VK_KEYB6: LETTER = "&";//36
@@ -4438,7 +4438,7 @@ stock KeyToString(key)
 				case VK_OEM_PERIOD: LETTER = ":";
 				case VK_OEM_2: LETTER = "?";
 				case VK_OEM_4: LETTER = "?";
-				//case VK_OEM_5: LETTER = "ª";
+				//case VK_OEM_5: LETTER = "ï¿½";
 				case VK_OEM_6: LETTER = "[";
 				case VK_OEM_102: LETTER = ">";
 				case VK_NUMPAD0: LETTER = "0";
@@ -4508,7 +4508,7 @@ stock KeyToString(key)
 				case VK_OEM_2: LETTER = "]";
 				case VK_OEM_4: LETTER = "'";
 				case VK_OEM_5: LETTER = "|";
-				case VK_OEM_6: LETTER = "¡";
+				case VK_OEM_6: LETTER = "ï¿½";
 				case VK_OEM_102: LETTER = "<";
 				case VK_NUMPAD0: LETTER = "0";
 				case VK_NUMPAD1: LETTER = "1";
@@ -5592,7 +5592,7 @@ stock ExportProject()
 	{
 	    if(global > 0) fwrite(ExportIO, "\r\n\r\n");
 		fwrite(ExportIO, "//Player TextDraws: \r\n\r\n\r\n");
-	    format(line, sizeof(line), "new PlayerText:TDEditor_PTD[MAX_PLAYERS][%i];\r\n", Index); fwrite(ExportIO, line);
+	    format(line, sizeof(line), "new PlayerText:speed[MAX_PLAYERS][%i];\r\n", Index); fwrite(ExportIO, line);
 	    Index = 0;
 	    new alignment, font, proportion;
 	    fwrite(ExportIO, "\r\n");
@@ -5607,63 +5607,63 @@ stock ExportProject()
 				        alignment = TDE_TextDrawGetAlignment(ProjectTD[i][ETextDrawID]);
 				        font = TDE_TextDrawGetFont(ProjectTD[i][ETextDrawID]);
 				        proportion = TDE_TextDrawIsProportional(ProjectTD[i][ETextDrawID]);
-				        format(line, sizeof(line), "TDEditor_PTD[playerid][%i] = CreatePlayerTextDraw(playerid, %f, %f, \"%s\");\r\n", Index, ProjectTD[i][ETextDrawPosX], ProjectTD[i][ETextDrawPosY], ProjectTD[i][ETextDrawText]); fwrite(ExportIO, line);
+				        format(line, sizeof(line), "speed[playerid][%i] = CreatePlayerTextDraw(playerid, %f, %f, \"%s\");\r\n", Index, ProjectTD[i][ETextDrawPosX], ProjectTD[i][ETextDrawPosY], ProjectTD[i][ETextDrawText]); fwrite(ExportIO, line);
 	                    if(ProjectTD[i][ETextDrawLetterX] != 0.0 || ProjectTD[i][ETextDrawLetterY] != 0.0)
 	                    {
-	                    	format(line, sizeof(line), "PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]);
+	                    	format(line, sizeof(line), "PlayerTextDrawLetterSize(playerid, speed[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawLetterX], ProjectTD[i][ETextDrawLetterY]);
 	                    	fwrite(ExportIO, line);
 	                    }
 	                    if(ProjectTD[i][ETextDrawTextX] != 0.0 || ProjectTD[i][ETextDrawTextY] != 0.0)
 	                    {
 	                    	if(alignment == 2)
 							{
-								format(line, sizeof(line), "PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawTextY], ProjectTD[i][ETextDrawTextX]);
+								format(line, sizeof(line), "PlayerTextDrawTextSize(playerid, speed[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawTextY], ProjectTD[i][ETextDrawTextX]);
 								fwrite(ExportIO, line);
 							}
 							else
 							{
-								format(line, sizeof(line), "PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawTextX], ProjectTD[i][ETextDrawTextY]);
+								format(line, sizeof(line), "PlayerTextDrawTextSize(playerid, speed[playerid][%i], %f, %f);\r\n", Index, ProjectTD[i][ETextDrawTextX], ProjectTD[i][ETextDrawTextY]);
 								fwrite(ExportIO, line);
 							}
 						}
-						format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
+						format(line, sizeof(line), "PlayerTextDrawAlignment(playerid, speed[playerid][%i], %d);\r\n", Index, alignment); fwrite(ExportIO, line);
 						if(ProjectTD[i][ETextDrawColor] != 0)
 						{
-							format(line, sizeof(line), "PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]);
+							format(line, sizeof(line), "PlayerTextDrawColor(playerid, speed[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawColor]);
 							fwrite(ExportIO, line);
 						}
 						if(TDE_TextDrawIsBox(ProjectTD[i][ETextDrawID]))
 	                    {
-							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][%i], 1);\r\n", Index); fwrite(ExportIO, line);
-	                        format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
+							format(line, sizeof(line), "PlayerTextDrawUseBox(playerid, speed[playerid][%i], 1);\r\n", Index); fwrite(ExportIO, line);
+	                        format(line, sizeof(line), "PlayerTextDrawBoxColor(playerid, speed[playerid][%i], %i);\r\n", Index, ProjectTD[i][ETextDrawBoxColor]); fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
+						format(line, sizeof(line), "PlayerTextDrawSetShadow(playerid, speed[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawShadow]);
 						fwrite(ExportIO, line);
 						if(ProjectTD[i][ETextDrawOutline] != 0)
 						{
-							format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); 
+							format(line, sizeof(line), "PlayerTextDrawSetOutline(playerid, speed[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawOutline]); 
 							fwrite(ExportIO, line);
 						}
 						if(ProjectTD[i][ETextDrawBGColor] != 0)
 						{
-							format(line, sizeof(line), "PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
+							format(line, sizeof(line), "PlayerTextDrawBackgroundColor(playerid, speed[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawBGColor]);
 							fwrite(ExportIO, line);
 						}
-						format(line, sizeof(line), "PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
-						format(line, sizeof(line), "PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
+						format(line, sizeof(line), "PlayerTextDrawFont(playerid, speed[playerid][%i], %d);\r\n", Index, font); fwrite(ExportIO, line);
+						format(line, sizeof(line), "PlayerTextDrawSetProportional(playerid, speed[playerid][%i], %d);\r\n", Index, proportion); fwrite(ExportIO, line);
 	                    if(ProjectTD[i][ETextDrawSelectable])
 	                    {
-	                    	format(line, sizeof(line), "PlayerTextDrawSetSelectable(playerid, TDEditor_PTD[playerid][%i], true);\r\n", Index);
+	                    	format(line, sizeof(line), "PlayerTextDrawSetSelectable(playerid, speed[playerid][%i], true);\r\n", Index);
 	                    	fwrite(ExportIO, line);
 	                    }
 
 						if(font == 5)
 						{
-						    format(line, sizeof(line), "PlayerTextDrawSetPreviewModel(playerid, TDEditor_PTD[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawModelid]); fwrite(ExportIO, line);
-						    format(line, sizeof(line), "PlayerTextDrawSetPreviewRot(playerid, TDEditor_PTD[playerid][%i], %f, %f, %f, %f);\r\n", Index, ProjectTD[i][ETextDrawRotX], ProjectTD[i][ETextDrawRotY], ProjectTD[i][ETextDrawRotZ], ProjectTD[i][ETextDrawZoom]); fwrite(ExportIO, line);
+						    format(line, sizeof(line), "PlayerTextDrawSetPreviewModel(playerid, speed[playerid][%i], %d);\r\n", Index, ProjectTD[i][ETextDrawModelid]); fwrite(ExportIO, line);
+						    format(line, sizeof(line), "PlayerTextDrawSetPreviewRot(playerid, speed[playerid][%i], %f, %f, %f, %f);\r\n", Index, ProjectTD[i][ETextDrawRotX], ProjectTD[i][ETextDrawRotY], ProjectTD[i][ETextDrawRotZ], ProjectTD[i][ETextDrawZoom]); fwrite(ExportIO, line);
 							if(IsVehicle(ProjectTD[i][ETextDrawModelid]))
 							{
-							    format(line, sizeof(line), "PlayerTextDrawSetPreviewVehCol(playerid, TDEditor_PTD[playerid][%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]); fwrite(ExportIO, line);
+							    format(line, sizeof(line), "PlayerTextDrawSetPreviewVehCol(playerid, speed[playerid][%i], %d, %d);\r\n", Index, ProjectTD[i][ETextDrawVehCol1], ProjectTD[i][ETextDrawVehCol2]); fwrite(ExportIO, line);
 							}
 						}
 						format(line, sizeof(line), "\r\n"); fwrite(ExportIO, line);

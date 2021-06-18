@@ -159,3 +159,19 @@
 [15:41:39 05/04/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
 [15:41:41 05/04/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
 [15:41:41 05/04/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
+[17:48:35 06/16/21] [WARNING] CMySQLResult::GetRowDataByName - field not found ("Admin") (Query: "SELECT * FROM accounts WHERE acc_name = 'alibaba747'")
+[17:48:35 06/16/21] [ERROR] cache_get_field_content_int - invalid datatype
+[17:49:43 06/16/21] [ERROR] CMySQLQuery::Execute[] - (error #1054) Unknown column 'Admin' in 'field list' (Query: "UPDATE accounts SET Admin = 2 WHERE acc_dbid = 1")
+[18:07:20 06/16/21] [WARNING] CMySQLResult::GetRowDataByName - field not found ("Admin") (Query: "SELECT * FROM accounts WHERE acc_name = 'alibaba747'")
+[18:07:20 06/16/21] [ERROR] cache_get_field_content_int - invalid datatype
+[18:08:53 06/16/21] [WARNING] CMySQLResult::GetRowDataByName - field not found ("Admin") (Query: "SELECT * FROM accounts WHERE acc_name = 'Arabelle'")
+[18:08:53 06/16/21] [ERROR] cache_get_field_content_int - invalid datatype
+[18:20:14 06/16/21] [ERROR] CMySQLQuery::Execute[] - (error #1054) Unknown column 'Admin' in 'field list' (Query: "UPDATE accounts SET Admin = 2 WHERE acc_dbid = 2")
+[18:21:02 06/16/21] [ERROR] CMySQLQuery::Execute[] - (error #1054) Unknown column 'Admin' in 'field list' (Query: "UPDATE accounts SET Admin = 2 WHERE acc_dbid = 2")
+[18:21:12 06/16/21] [ERROR] CMySQLQuery::Execute[] - (error #1054) Unknown column 'Admin' in 'field list' (Query: "UPDATE accounts SET Admin = 2 WHERE acc_dbid = 2")
+[18:21:13 06/16/21] [ERROR] CMySQLQuery::Execute[] - (error #1054) Unknown column 'Admin' in 'field list' (Query: "UPDATE accounts SET Admin = 1 WHERE acc_dbid = 2")
+[22:01:09 06/16/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
+[22:01:11 06/16/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
+[12:05:12 06/17/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
+[12:05:14 06/17/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)
+[12:05:14 06/17/21] [ERROR] CMySQLConnection::Connect - (error #2003) Can't connect to MySQL server on '127.0.0.1' (10061)

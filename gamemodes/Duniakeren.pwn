@@ -12,30 +12,20 @@
 
 #pragma tabsize 0
 
-//HUD
-new PlayerText:TDEditor_PTD[MAX_PLAYERS][5];
-new Speedotimer;
+//HUD				
 new Text:PublicTD[3];
 //All god
 new godmode [MAX_PLAYERS];
 
-static TempVehicle[MAX_PLAYERS] = { -1, ... };
-static bool:IsTempVehicle[MAX_VEHICLES] = { false, ... };
+static RemVeh[MAX_PLAYERS] = { -1, ... };
+static bool:IsRemVeh[MAX_VEHICLES] = { false, ... };
 new vgod[MAX_PLAYERS];
-new pgoto[MAX_PLAYERS];
 new jumpmode[MAX_PLAYERS];
 
 new sniperworld[MAX_PLAYERS];
 
-
-new PlayerWorld[MAX_PLAYERS];
-new WorldInvite[MAX_PLAYERS];
-
-new brawl[MAX_PLAYERS];
-
-//=======Pickup========
-new ring;
-
+//=======Pickup=======
+new pintutinju;
 
 #define COL_WHITE	(0xffffffFF)   
 #define COL_BLACk	(0x000000FF)   
@@ -219,11 +209,7 @@ public OnGameModeInit()
 	TextDrawSetProportional(PublicTD[2], 1);
 	TextDrawSetSelectable(PublicTD[2], 0);
 
-	Speedotimer = SetTimer("speedotimer", 555, true);
-	//pickup
-	ring = CreatePickup(1314, 1, 815.5236,-1345.4692,22.5500, 0);
-
-
+	pintutinju = CreatePickup(19133, 1, 871.8083,-1293.5560,3001.0859, -1);
 	return 1;
 }
 
@@ -291,61 +277,6 @@ RemoveBuildingForPlayer(playerid, 1411, 870.1484, -1343.6563, 14.0859, 0.25);
 RemoveBuildingForPlayer(playerid, 1438, 872.2656, -1346.4141, 12.5313, 0.25);
 RemoveBuildingForPlayer(playerid, 1411, 875.4141, -1343.6563, 14.0859, 0.25);
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
-TDEditor_PTD[playerid][0] = CreatePlayerTextDraw(playerid, 559.868041, 250.666519, "box");
-PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][0], 0.000000, 3.206444);
-PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][0], 637.000000, 0.000000);
-PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][0], 1);
-PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][0], 65535);
-PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][0], 1);
-PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][0], 255);
-PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][0], 0);
-PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][0], 255);
-PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][0], 1);
-PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][0], 1);
-
-TDEditor_PTD[playerid][1] = CreatePlayerTextDraw(playerid, 559.400207, 248.333404, "Speed_:_100Km");
-PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][1], 0.270687, 1.448331);
-PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][1], -33.000000, 0.000000);
-PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][1], 1);
-PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][1], -1);
-PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][1], 0);
-PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][1], 255);
-PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][1], 1);
-PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][1], 1);
-
-TDEditor_PTD[playerid][2] = CreatePlayerTextDraw(playerid, 559.868713, 264.666778, "Health_:_1000");
-PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][2], 0.256163, 1.401665);
-PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][2], -33.000000, 0.000000);
-PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][2], 1);
-PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][2], -1);
-PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][2], 0);
-PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][2], 255);
-PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][2], 1);
-PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][2], 1);
-
-TDEditor_PTD[playerid][3] = CreatePlayerTextDraw(playerid, 587.979797, 284.499969, "box");
-PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][3], 0.000000, 1.238655);
-PlayerTextDrawTextSize(playerid, TDEditor_PTD[playerid][3], 612.000000, 0.000000);
-PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][3], 1);
-PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][3], -1);
-PlayerTextDrawUseBox(playerid, TDEditor_PTD[playerid][3], 1);
-PlayerTextDrawBoxColor(playerid, TDEditor_PTD[playerid][3], -16776961);
-PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][3], 0);
-PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][3], 255);
-PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][3], 1);
-PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][3], 1);
-
-TDEditor_PTD[playerid][4] = CreatePlayerTextDraw(playerid, 587.511169, 282.749969, "VGOD");
-PlayerTextDrawLetterSize(playerid, TDEditor_PTD[playerid][4], 0.235080, 1.244166);
-PlayerTextDrawAlignment(playerid, TDEditor_PTD[playerid][4], 1);
-PlayerTextDrawColor(playerid, TDEditor_PTD[playerid][4], -1);
-PlayerTextDrawSetShadow(playerid, TDEditor_PTD[playerid][4], 0);
-PlayerTextDrawBackgroundColor(playerid, TDEditor_PTD[playerid][4], 255);
-PlayerTextDrawFont(playerid, TDEditor_PTD[playerid][4], 1);
-PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][4], 1);
-
 /////////////////////////////////////////////////////////////////////////////////////////
 	SetPlayerCamera(playerid);
 	ResetPlayer(playerid);
@@ -354,18 +285,12 @@ PlayerTextDrawSetProportional(playerid, TDEditor_PTD[playerid][4], 1);
 	mysql_format(ourconnection, existCheck, sizeof(existCheck), "SELECT * FROM accounts WHERE acc_name = '%e'", ReturnName(playerid));
 	mysql_tquery(ourconnection, existCheck, "Logplayerin", "i", playerid);
 
-	new name[MAX_PLAYER_NAME];
-
-	PlayerWorld[playerid] = 0;
-	WorldInvite[playerid] = -1;
-
 	SetPlayerInterior(playerid, 0);
 	sniperworld[playerid] = false;
 	for(new w = 0; w < 3; w++)
 	{
 	TextDrawShowForPlayer(playerid, PublicTD[w]);
 	}
-	
 	return 1;
 }
 
@@ -391,9 +316,6 @@ public OnPlayerDisconnect(playerid, reason)
 
 public OnPlayerSpawn(playerid)
 {
-	SetPlayerHealth(playerid, 999999);
-	SendClientMessage(playerid, -1, "You are protected against spawn-killing for 5 seconds.");
-	 SetTimerEx("EndAntiSpawnKill", 5000, false, "i", playerid);
 	if(godmode[playerid]==1)
 	{  
 		SetPlayerHealth(playerid,1000000);    
@@ -406,23 +328,15 @@ public OnPlayerSpawn(playerid)
 	{
 		setspawnsniper(playerid);
 	}
-
 	return 1;
 }
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	new score, modelid;
+	new score;
 	SendDeathMessage(killerid, playerid, reason);
 	GivePlayerMoney(killerid, 500);
-	SetPlayerScore(killerid, score+1);
-
-	if(brawl[playerid] == 1)
-	{
-		brawl[playerid] = 0;
-		SetPlayerPos(playerid, 815.5236,-1345.4692,22.5500);
-		SetPlayerSkin(playerid, 212);
-	}
+	SetPlayerScore(killerid, score++);
 	return 1;
 }
 
@@ -478,20 +392,11 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
-	if(IsPlayerInAnyVehicle(playerid) && !isabike(GetPlayerVehicleID(playerid)))
+	if(oldstate == PLAYER_STATE_DRIVER && RemVeh[playerid] != -1)
 	{
-		new str[150]; 
-		for(new i = 0; i < 10; i++)PlayerTextDrawShow(playerid, TDEditor_PTD[playerid][i]);
-	}
-	else
-	{
-		for(new i = 0; i < 10; i++)PlayerTextDrawHide(playerid, TDEditor_PTD[playerid][i]);
-	}
-	if(oldstate == PLAYER_STATE_DRIVER && TempVehicle[playerid] != -1)
-	{
-		IsTempVehicle[TempVehicle[playerid]] = false;
-		DestroyVehicle(TempVehicle[playerid]);
-		TempVehicle[playerid] = -1;
+		IsRemVeh[RemVeh[playerid]] = false;
+		DestroyVehicle(RemVeh[playerid]);
+		RemVeh[playerid] = -1;
 	}
 	return 1;
 }
@@ -538,11 +443,12 @@ public OnPlayerObjectMoved(playerid, objectid)
 
 public OnPlayerPickUpPickup(playerid, pickupid)
 {
-	if(pickupid == ring )
+	if (pickupid == pintutinju)
 	{
-		brawl[playerid] = 1;
-		SetPlayerPos(playerid, 813.2675,-1341.8605,23.1139);
-		SetPlayerSkin(playerid, 80);
+		SetPlayerSkin(playerid, AccountInfo[playerid][pSkin]);
+		SpawnPlayer(playerid);
+		SetPlayerVirtualWorld(playerid, 0);
+		SetPlayerInterior(playerid, 0);
 	}
 	return 1;
 }
@@ -581,7 +487,6 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	if (PRESSED(KEY_LOOK_BEHIND))
     {
-    	new float:speed;
 		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, 200);
 		return 1;
@@ -595,7 +500,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	{
 		if(jumpmode[playerid] == 1)
 		{
-			SetPlayerVelocity(playerid, 0.0, 0.0, 0.5);
+			static Float:velo[3];
+			GetPlayerVelocity(playerid,velo[0],velo[1],velo[2]);
+			SetPlayerVelocity(playerid,velo[0],velo[1],velo[2]+1.0);
 		}
 	}
 	if(PRESSED(KEY_NO))
@@ -702,7 +609,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 					}
 					case 2:
 					{
-						SetPlayerPos(playerid, 873.7695,-1293.5681,3001.9363);
+						SetPlayerPos(playerid, 876.9653,-1293.1692,3001.0859);
+						SetPlayerInterior(playerid, 13);
 						SetPlayerSkin(playerid, 80);
 						return 1;
 					}
@@ -812,6 +720,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         	    // Repair Car
 				case 16:
         	    {
+					RepairVehicle(GetPlayerVehicleID(playerid));
 					SetVehicleHealth(GetPlayerVehicleID(playerid), 1000);
 					PlayerPlaySound(playerid, 1133, 0.0, 0.0, 0.0);
 				 	SendClientMessage(playerid, COLOR_STEEL_BLUE, "Kamu telah berhasil memperbaiki mobil.");
@@ -1968,37 +1877,32 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
 	if(vgod[playerid]==1)
 	{  
-		new Float:pos[3];
 		RepairVehicle(GetPlayerVehicleID(playerid));
 		SetVehicleHealth(GetPlayerVehicleID(playerid), 1000000);
 	}
 	return 1;
 }
 
-public Speedometer()
-{
-	new vehicleid, playerid, float:health;
-	new sting[512], str[512];
-	for(new i = 0; i < MAX_PLAYERS; i++)
-	{
-		if(IsPlayerConnected(i) && PLAYER_STATE_DRIVER)
-		{
-			new speed = GetPlayerSpeed(i);
 
-			format(str, sizeof(str), "Speed : ~%03d~w~km/h", speed);
-			PlayerTextDrawSetString(i, TDEditor_PTD[i][1], str);
-			
-			new Float:Percentage = (((health - 250.0) / (1000.0 - 250.0)) *100.0);
-			format(str, sizeof(str), "Health : ~%.0f%", Percentage);
-			PlayerTextDrawSetString(i, TDEditor_PTD[i][2], str);
-		}
-	}
-}
+
 
 //_________________Command___________________
 
 CMD:cmdlist(playerid, params[])
 {
+	if(AccountInfo[playerid][pAdmin] == 2)
+	{
+		SCM(playerid, COL_ORANGE, "CMD Admin level 2:");
+		SCM(playerid, COL_YELLOW, "/kill /get /dveh /setworld /freeze /unfreeze /health /money /playmusic");
+	}
+	if(AccountInfo[playerid][pAdmin] == 1)
+	{
+		SCM(playerid, COL_ORANGE, "CMD Admin level 1:");
+		SCM(playerid, COL_YELLOW, "/health /money /playmusic");
+	}
+	SCM(playerid, COL_ORANGE, "CMD Player:");
+	SCM(playerid, COL_YELLOW, "/jetpack /skin /weap /spawn /god /teleport /v /spawnveh /para /goto");
+	SCM(playerid, COL_YELLOW, "/sfight /heal /sjump /vgod /boom /spin /snip /world /stopmusic");
 	return 1;
 }
 
@@ -2016,7 +1920,6 @@ CMD:makeadmin(playerid, params[])
 		SCMex(playerb, COL_ORANGE, "Kamu telah menjadi admin level: %i oleh: %s", adminlvl, ReturnName(playerid));
 
 		AccountInfo[playerb][pAdmin] = adminlvl;
-
 		mysql_format(ourconnection, insert, sizeof(insert), "UPDATE accounts SET Admin = %i WHERE acc_dbid = %i", adminlvl, AccountInfo[playerb][pDBID]);
 		mysql_tquery(ourconnection, insert);
 	}
@@ -2074,7 +1977,7 @@ CMD:health(playerid, params[])
 	return 1;
 }
 
-CMD:w(playerid, params[])
+CMD:weap(playerid, params[])
 {
 	new weaponid, ammo;
 	if(sscanf(params, "ii", weaponid, ammo))
@@ -2127,28 +2030,32 @@ CMD:v(playerid,params[])
 	new vid;
 	if(sscanf(params,"i",vid) || (vid < 400 || vid > 611)) 
 		return SendClientMessage(playerid, COL_RED,"[SERVER]: /v {61c5dd}[VehicleID (400-611)]");
-	if(GetPlayerState(playerid) != PLAYER_STATE_DRIVER)
-	{	
-		new Float:pos[4], listitem;
+	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
+		return SCM(playerid, COL_RED, "Kamu tidak bisa spawn di dalam kendaraan!");
+	new Float:pos[4];
 		GetPlayerPos(playerid,pos[0],pos[1],pos[2]);
 		GetPlayerFacingAngle(playerid,pos[3]);
 		SetPlayerInterior(playerid, GetPlayerInterior(playerid));
 		SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(playerid));
 		LinkVehicleToInterior(GetPlayerVehicleID(playerid), GetPlayerInterior(playerid));
-		TempVehicle[playerid] = CreateVehicle(vid,pos[0],pos[1],pos[2],pos[3],-1,-1,0,0);
-		IsTempVehicle[TempVehicle[playerid]] = true;
-		PutPlayerInVehicle(playerid, TempVehicle[playerid], 0);
+		RemVeh[playerid] = CreateVehicle(vid,pos[0],pos[1],pos[2],pos[3],-1,-1,0,0);
+		IsRemVeh[RemVeh[playerid]] = true;
+		PutPlayerInVehicle(playerid, RemVeh[playerid], 0);
 		SCM(playerid, COL_ORANGE,"[SRVER]: Vehicle Spawned!");
-	}
-	else
-	{
-		SCM(playerid, COL_RED, "Kamu tidak bisa spawn di dalam kendaraan!");
-	}
 	return 1;
 }
 
 CMD:spawnveh(playerid, params[])
 {
+	new vid;
+	if(sscanf(params,"i",vid) || (vid < 400 || vid > 611)) 
+		return SendClientMessage(playerid, COL_RED,"[SERVER]: /spawnveh {61c5dd}[VehicleID (400-611)]");
+	new Float:pos[4];
+		GetPlayerPos(playerid,pos[0],pos[1],pos[2]);
+		GetPlayerFacingAngle(playerid,pos[3]);
+		SetPlayerFacingAngle(playerid,pos[3]);
+		CreateVehicle(vid,pos[0],pos[1] + 2,pos[2],pos[3],-1,-1,0,0);
+		SCM(playerid, COL_ORANGE, "[SRVER]: Berhasil spawn kendaraan");
 	return 1;
 }
 
@@ -2240,20 +2147,6 @@ CMD:get(playerid, params[])
 	return 1;
 }
 
-
-CMD:fix(playerid, params[])
-{
-	if(IsPlayerInAnyVehicle(playerid))
-	{
-		RepairVehicle(GetPlayerVehicleID(playerid));
-		GameTextForPlayer(playerid, "~b~~h~~h~~h~Kendaraan di perbaiki", 5000, 3);
-  		SetVehicleHealth(GetPlayerVehicleID(playerid), 1000.0);
-  		return 1;
-	}
-	SCM(playerid, COL_RED, "ERROR: Kamu harus berapa di dalam kendaraan");
-	return 1;
-}
-
 CMD:sfight(playerid, params[])
 {
 	ShowPlayerDialog(playerid, fight, DIALOG_STYLE_LIST, "Pilih gaya bertarung", "Normal\nBoxing\nKungfu\nKneehead\nGrabkick\nElbow", "Spawn", "Batal");
@@ -2323,15 +2216,13 @@ CMD:setworld(playerid, params[])
 		return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
 	new target, id;
 	if(sscanf(params, "ui", target, id)) 
-	return SCM(playerid, COL_RED, "[SERVER]: /setworld {61c5dd}[player/id]");
+	return SCM(playerid, COL_RED, "[SERVER]: /setworld {61c5dd}[player/id] [WorldID]");
 
 	if(! IsPlayerConnected(target)) 
 	return SCM(playerid, COL_RED, "ERROR: Player tidak konek.");
 
-	SetPlayerInterior(target, id);
 	SetPlayerVirtualWorld(target, id);
 
-	new string[144];
 	SCMex(playerid, COL_ORANGE, "Admin %s[%i] menempatkan kamu ke Virtual world %i.", ReturnPlayerName(playerid), playerid, id);
 	SCMex(target, COL_ORANGE, "Kamu di tempatkan %s[%i]'s virtual world ID %i.", ReturnPlayerName(target), target, id);
 	return 1;
@@ -2352,7 +2243,6 @@ CMD:freeze(playerid, params[])
 	PlayerPlaySound(target, 1057, 0.0, 0.0, 0.0);
 	PlayerPlaySound(playerid, 1057, 0.0, 0.0, 0.0);
 
-	new string[144];
 	SCMex(playerid, COL_ORANGE, "admin %s has freezed you.", ReturnName(playerid));
 	SCMex(target, COL_ORANGE, "You have freezed by %s.", ReturnName(playerid));
 
@@ -2372,7 +2262,6 @@ CMD:unfreeze(playerid, params[])
 	PlayerPlaySound(target, 1057, 0.0, 0.0, 0.0);
 	PlayerPlaySound(playerid, 1057, 0.0, 0.0, 0.0);
 
-	new string[144];
 	SCMex(playerid, COL_ORANGE, "admin %s has unfreezed you.", ReturnName(playerid));
 	SCMex(target, COL_ORANGE, "You have unfreezed by %s.", ReturnName(target));
 
@@ -2399,7 +2288,6 @@ CMD:sjump(playerid, params[])
 
 CMD:vgod(playerid, params[])
 {
-	new vehicleid;
 		if (GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
         {
 			if(vgod[playerid] == 0)
@@ -2477,24 +2365,10 @@ CMD:world(playerid, params[])
 	return 1;
 }
 
-CMD:myworld(playerid,params[])
-{
-	SetPlayerVirtualWorld(playerid, 1);
-	SCM(playerid, COL_PINK, "berhasil");
-	return 1;
-}
-
-CMD:public(playerid,params[])
-{
-	SetPlayerVirtualWorld(playerid, 0);
-	SCM(playerid, COL_PINK, "berhasil");
-	return 1;
-}
-
 CMD:playmusic(playerid, params[])
 {
-    if(AccountInfo[playerid][pAdmin] < 2)
-	{
+   if(AccountInfo[playerid][pAdmin] < 1)
+	return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
 		new url[128];
 		if(!sscanf(params, "s[128]", url))
 	    {
@@ -2506,15 +2380,6 @@ CMD:playmusic(playerid, params[])
 				}
 			}
 		}
-		else
-		{
-		    return SCM(playerid, COL_RED, "Error: /playmusic [url]");
-		}
-	}
-	else
-	{
-		return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
-	}
 	return 1;
 }
 
@@ -2525,10 +2390,18 @@ CMD:stopmusic(playerid, params[])
 	return 1;
 }
 
-CMD:kick(playerid, params[])
-{
-	KickEx(playerid);
-}
+// CMD:tp(playerid,params[])
+// {
+// 		new Float:posx,Float:posy,Float:posz, inte;
+// 		if(sscanf(params,"fffi",posx,posy,posz,inte))return SendClientMessage(playerid,-1,"* Tyope: /gotoxyz [posx][posy][posz][int]");
+// 		{
+// 			SetPlayerPos(playerid,posx,posy,posz);
+// 			SetPlayerInterior(playerid,inte);
+// 			GameTextForPlayer(playerid,"~w~You got~y~teleported",5000,4);
+// 		}
+// 	return 1;
+// }
+
 
 //CMD:setcolor(playerid, params[])
 //{
