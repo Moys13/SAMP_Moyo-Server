@@ -26,6 +26,8 @@ new sniperworld[MAX_PLAYERS];
 
 //=======Pickup=======
 new pintutinju;
+new pintuverdant;
+new pintukeluarverdant;
 
 #define COL_WHITE	(0xffffffFF)   
 #define COL_BLACk	(0x000000FF)   
@@ -157,6 +159,7 @@ main()
 
 public OnGameModeInit()
 {
+	DisableInteriorEnterExits();
 	ourconnection = mysql_connect(SQL_HOSTNAME, SQL_USERNAME, SQL_DATABASE, SQL_PASSWORD);
 	
 	if(mysql_errno() !=0)
@@ -210,6 +213,8 @@ public OnGameModeInit()
 	TextDrawSetSelectable(PublicTD[2], 0);
 
 	pintutinju = CreatePickup(19133, 1, 871.8083,-1293.5560,3001.0859, -1);
+	pintuverdant = CreatePickup(1273, 1, 1122.7091,-2037.0099,69.8942, -1);
+	pintukeluarverdant = CreatePickup(1273, 1, 1260.6509,-785.4543,1091.9063, -1);
 	return 1;
 }
 
@@ -448,6 +453,16 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 		SetPlayerSkin(playerid, AccountInfo[playerid][pSkin]);
 		SpawnPlayer(playerid);
 		SetPlayerVirtualWorld(playerid, 0);
+		SetPlayerInterior(playerid, 0);
+	}
+	if (pickupid == pintuverdant)
+	{
+		SetPlayerPos(playerid, 1262.6552,-785.3302,1091.9063);
+		SetPlayerInterior(playerid, 5);
+	}
+	if (pickupid == pintukeluarverdant)
+	{
+		SetPlayerPos(playerid, 1125.1886,-2036.5970,69.8822);
 		SetPlayerInterior(playerid, 0);
 	}
 	return 1;
@@ -1994,6 +2009,9 @@ CMD:weap(playerid, params[])
 CMD:spawn(playerid, params[])
 {
 	SpawnPlayer(playerid);
+	SetPlayerVirtualWorld(playerid, 0);
+	SetPlayerInterior(playerid, 0);
+	SetPlayerVirtualWorld(playerid, 0);
 	return 1;
 }
 
