@@ -9,6 +9,7 @@
 #include <a_vehicles>
 #include <streamer>
 #include <foreach>
+#include <discord-connector>
 
 #pragma tabsize 0
 
@@ -23,6 +24,7 @@ new vgod[MAX_PLAYERS];
 new jumpmode[MAX_PLAYERS];
 
 new sniperworld[MAX_PLAYERS];
+new sniperInvite[MAX_PLAYERS];
 
 //=======Pickup=======
 new pintutinju;
@@ -127,9 +129,9 @@ static stock g_arrVehicleNames[][] = {
 new ourconnection;
 
 #define SQL_HOSTNAME "127.0.0.1"
-#define SQL_USERNAME "main"
+#define SQL_USERNAME "root"
 #define SQL_DATABASE "datasamp"
-#define SQL_PASSWORD "wismoyo007"
+#define SQL_PASSWORD ""
 
 //============================
 
@@ -149,9 +151,15 @@ enum p_Account_Data
 new joinskin = mS_INVALID_LISTID;
 new playerLogin[MAX_PLAYERS];
 
+//========Discord==========
+new DCC_Channel:commandChannel;
+//==========================
+
 new AccountInfo[MAX_PLAYERS][p_Account_Data];
 main()
 {
+	commandChannel = DCC_FindChannelById("856012335679143967");//ID channel Discord
+	
 	print("\n------------------------");
 	print(" Server ini milik bagas");
 	print("------------------------\n");
@@ -241,6 +249,9 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerConnect(playerid)
 {
+	sniperworld[playerid] = 0;
+	sniperInvite[playerid] = -1;
+	
 	new string[120], pName[MAX_PLAYER_NAME];
     GetPlayerName(playerid,pName,MAX_PLAYER_NAME);
     format(string,sizeof string,"%s has joined the server. Welcome!",pName);
@@ -316,6 +327,7 @@ public OnPlayerDisconnect(playerid, reason)
  
     format(szString, sizeof szString, "%s left the server (%s).", playerName, szDisconnectReason[reason]);
 	SendClientMessageToAll(COL_PINK, szString);
+	
 	return 1;
 }
 
@@ -1897,7 +1909,41 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 	}
 	return 1;
 }
+//____________________DISCORD Connector______________
+/*
+untuk berinteraksi pada channel discord
+*/
+public DCC_OnMessageCreate(DCC_Message:message)
+{
+	new DCC_Channel:channel;
+	DCC_GetMessageChannel(message, channel);
 
+	if(channel != commandChannel)
+		return 1;
+
+	new DCC_User:author;
+	DCC_GetMessageAuthor(message, author);
+	
+	new bool:isbot;
+	DCC_IsUserBot(author, isbot);
+	if(isbot){
+		return 1;
+	}
+
+	new str[256];
+	new command[32], params[128];
+
+	DCC_GetMessageContent(message, str);
+
+	sscanf(str, "s[32]s[128]", command, params);
+
+        new playerID, _message[128];
+
+        sscanf(params, "s[128]", playerID, _message); // Seperating the playerID and the message //
+
+		SendClientMessageToAll(COL_PINK, _message);
+	return 1;
+}
 
 
 
@@ -1905,12 +1951,12 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 
 CMD:cmdlist(playerid, params[])
 {
-	if(AccountInfo[playerid][pAdmin] == 2)
+	if(AccountInfo[playerid][pAdmin] >= 2)
 	{
 		SCM(playerid, COL_ORANGE, "CMD Admin level 2:");
 		SCM(playerid, COL_YELLOW, "/kill /get /dveh /setworld /freeze /unfreeze /health /money /playmusic");
 	}
-	if(AccountInfo[playerid][pAdmin] == 1)
+	if(AccountInfo[playerid][pAdmin] >= 1)
 	{
 		SCM(playerid, COL_ORANGE, "CMD Admin level 1:");
 		SCM(playerid, COL_YELLOW, "/health /money /playmusic");
@@ -1918,6 +1964,8 @@ CMD:cmdlist(playerid, params[])
 	SCM(playerid, COL_ORANGE, "CMD Player:");
 	SCM(playerid, COL_YELLOW, "/jetpack /skin /weap /spawn /god /teleport /v /spawnveh /para /goto");
 	SCM(playerid, COL_YELLOW, "/sfight /heal /sjump /vgod /boom /spin /snip /world /stopmusic");
+	SCM(playerid, COL_ORANGE, "CMD Player:");
+	SCM(playerid, COL_YELLOW, "/livedc /mutedc");
 	return 1;
 }
 
@@ -2350,24 +2398,31 @@ CMD:spin(playerid, params[])
 CMD:snip(playerid, params[])
 {
 	new string[120];
-	SetPVarInt(playerid, "CMD_muted", 1);
 	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
-	{
-		DestroyVehicle(GetPlayerVehicleID(playerid));
-	}
+		return DestroyVehicle(GetPlayerVehicleID(playerid));
 	if(!isnull(params))
 	{
 		if(!strcmp(params,"join",true))
 		{
-			sniperworld[playerid] = true;
+			if(sniperInvite[playerid] == -1)
+				return SCM(playerid, COL_RED, "ERROR: Tidak ada player di dalam deathmatch!");
+			sniperworld[playerid] = sniperInvite[playerid];
+			sniperInvite[playerid] = -1;
+			
+		}
+		else
+		{
+			new targetid;
+			sniperInvite[targetid] = sniperworld[playerid];
 			setspawnsniper(playerid);
 			SCM(playerid, COL_YELLOW, "TEKAN {ffaa00}'H' {d9ff00}UNTUK KELUAR DARI DEATH MATCH ");
 			SetPlayerHealth(playerid, 100);
 			SCM(playerid, COL_ORANGE, "Anda bergabung di sniper Deathmatch");
 		}
-		return 1;
 	}
+	SetPVarInt(playerid, "CMD_muted", 1);
 	sniperworld[playerid] = true;
+	sniperInvite[playerid] = 1;
 	setspawnsniper(playerid);
 	SCM(playerid, COL_YELLOW, "TEKAN {ffaa00}'H' {d9ff00}UNTUK KELUAR DARI DEATH MATCH ");
 	SetPlayerHealth(playerid, 100);
@@ -2405,6 +2460,17 @@ CMD:stopmusic(playerid, params[])
 {
 	StopAudioStreamForPlayer(playerid);
 	SCM(playerid, COL_ORANGE, "Anda menghentikan music");
+	return 1;
+}
+
+CMD:rename(playerid, params[])
+{
+	new name[128];
+	if(AccountInfo[playerid][pAdmin] < 1)
+		return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
+	if(sscanf(params, "s[128]", name))
+		return SCM(playerid, COL_RED, "[SERVER]: /rename {61c5dd}[Name]");
+	SetPlayerName(playerid, name);
 	return 1;
 }
 
