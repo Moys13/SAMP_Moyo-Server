@@ -1,66 +1,3 @@
-/*----------------------------------------------------------------------------*\
-					==============================
-					 y_hooks - Hook any callback!
-					==============================
-Description:
-	Automatically hooks any callbacks with a very simple syntax.
-Legal:
-	Version: MPL 1.1
-	
-	The contents of this file are subject to the Mozilla Public License Version 
-	1.1 (the "License"); you may not use this file except in compliance with 
-	the License. You may obtain a copy of the License at 
-	http://www.mozilla.org/MPL/
-	
-	Software distributed under the License is distributed on an "AS IS" basis,
-	WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-	for the specific language governing rights and limitations under the
-	License.
-	
-	The Original Code is the SA:MP callback hooks include.
-	
-	The Initial Developer of the Original Code is Alex "Y_Less" Cole.
-	Portions created by the Initial Developer are Copyright (C) 2008
-	the Initial Developer. All Rights Reserved.
-	
-	Contributors:
-		ZeeX, koolk, JoeBullet/Google63, g_aSlice/Slice
-	
-	Thanks:
-		JoeBullet/Google63 - Handy arbitrary ASM jump code using SCTRL.
-		Peter, Cam - Support.
-		ZeeX, g_aSlice/Slice, Popz, others - Very productive conversations.
-		koolk - IsPlayerinAreaEx code.
-		TheAlpha - Danish translation.
-		breadfish - German translation.
-		Fireburn - Dutch translation.
-		yom - French translation.
-		50p - Polish translation.
-		Zamaroht - Spanish translation.
-		Dracoblue, sintax, mabako, Xtreme, other coders - Producing other modes
-			for me to strive to better.
-		Pixels^ - Running XScripters where the idea was born.
-		Matite - Pestering me to release it and using it.
-	
-	Very special thanks to:
-		Thiadmer - PAWN, whose limits continue to amaze me!
-		Kye/Kalcor - SA:MP.
-		SA:MP Team past, present and future - SA:MP.
-	
-Version:
-	2.0
-Changelog:
-	14/04/12:
-		Added crash fix from Slice, now returning correct values.
-		Fixed ALS detection of mode callbacks.
-	25/02/12:
-		Extracted most of the code to a separate file.
-	17/03/11:
-		Second complete re-write using another new technique.  Now VERY fast!
-		Updated OnPlayerUpdate code using Google63's SCTRL jump code.
-	06/08/10:
-		First version
-\*----------------------------------------------------------------------------*/
 
 #include "y_version"
 #include <a_samp>
@@ -105,11 +42,11 @@ ALS_DATA<>
 
 // These defines now use the much more generic ALS code so that the list of
 // callbacks is only done in one place.
-#define HOOK_R_INT<%0,%2>(%3) return Bit_GetBit(Bit:gs_ALS,_:ALS_On%0)?P@(#ALS_PREFIX"_On"#%0,#%2#q,ALS_RS_%3):ret;
-#define HOOK_RETURN<%0> ALS_DO:HOOK_R_INT<%0>
+//#define HOOK_R_INT<%0,%2>(%3) return Bit_GetBit(Bit:gs_ALS,_:ALS_On%0)?P@(#ALS_PREFIX"_On"#%0,#%2#q,ALS_RS_%3):ret;
+//#define HOOK_RETURN<%0> ALS_DO:HOOK_R_INT<%0>
 
-#define HOOK_C_INT<%0,%2>(%3) if(Bit_GetBit(Bit:gs_ALS,_:ALS_On%0))return P@(#ALS_PREFIX"_On"#%0,#%2#q,ALS_RS_%3);hooks_do_hooks_call_no_als:return ret;
-#define HOOK_CALL<%0> ALS_DO:HOOK_C_INT<%0>
+//#define HOOK_C_INT<%0,%2>(%3) if(Bit_GetBit(Bit:gs_ALS,_:ALS_On%0))return P@(#ALS_PREFIX"_On"#%0,#%2#q,ALS_RS_%3);hooks_do_hooks_call_no_als:return ret;
+//#define HOOK_CALL<%0> ALS_DO:HOOK_C_INT<%0>
 
 
 enum E_FUNC_HOOK_DATA
@@ -123,23 +60,7 @@ static stock
 	YSI_g_sCallbackData[ALS][E_FUNC_HOOK_DATA],
 	YSI_g_sLastFoundIndex;
 
-static Hooks_Blank_Return1N()
-{
-	// Bug fix from Slice.
-	return -1;
-}
-
-static Hooks_Blank_Return0()
-{
-	return 0;
-}
-
-static Hooks_Blank_Return1()
-{
-	return 1;
-}
-
-Hooks_RedirectPublic(from[], to[], final = 1)
+Hooks_RedirectPublic(from[], to[])
 {
 	P:4("Hooks_RedirectPublic called: \"%s\", \"%s\"", from, to);
 	new
@@ -163,26 +84,7 @@ Hooks_RedirectPublic(from[], to[], final = 1)
 			// it, however, the callback will no longer exist (unless PAWN
 			// buffers callbacks in an efficient structure, which is possible).
 			// UPDATE: Clearly not.
-			//AMX_Write(addr, -1);
-			switch (final)
-			{
-				case 0:
-				{
-					#emit CONST.pri   Hooks_Blank_Return0
-					#emit STOR.S.pri  pointer
-				}
-				case -1:
-				{
-					#emit CONST.pri   Hooks_Blank_Return1N
-					#emit STOR.S.pri  pointer
-				}
-				default:
-				{
-					#emit CONST.pri   Hooks_Blank_Return1
-					#emit STOR.S.pri  pointer
-				}
-			}
-			AMX_Write(addr, pointer);
+			AMX_Write(addr, -1);
 		}
 		return ret;
 	}
@@ -210,7 +112,7 @@ static Hooks_AddOne(idx, &toaddidx, struc[E_FUNC_HOOK_DATA])
 	}
 }
 
-static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA]) //, &count)
+static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA], &count)
 {
 	P:4("Hooks_FindAll called: %s %d", name, toaddidx);
 	new
@@ -229,106 +131,78 @@ static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA]) //, &count)
 	{
 		P:W("y_hooks buffer exhausted, resorting to slow method.");
 	}
+	count = struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
 	// Don't store the end, if the count goes off the end of the addresses array
 	// then we need to just start reading from the AMX directly.
-	P:4("Hooks_FindAll end: %s %d %d", name, toaddidx, struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START]);
-	//count = struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
-	return struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
+	P:4("Hooks_FindAll end: %s %d %d", name, toaddidx, count);
 }
 
-#define HOOKS_DO_ONE_CALLBACK<%0> ALS_DETECT<%0>if(!Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0]))Hooks_RedirectPublic(#On%0,#S@@_On%0,ALS_R_%0);
-#define HOOKS_DO_ONE_SPECIAL<%0> if(Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0]))state y_hooks_%0 : y_hooks_%0_some;else state y_hooks_%0 : y_hooks_%0_none;
-
+//#define HOOKS_DO_ONE_CALLBACK<%0> ALS_DETECT<%0>Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
+//#define HOOKS_DO_ONE_SPECIAL<%0> Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(count)state y_hooks_%0:y_hooks_%0_some;else state y_hooks_%0:y_hooks_%0_none;
+//#define ALS_DETECT<%0> if(funcidx(#ALS_PREFIX"_On"#%0)!=-1)Bit_Let(gs_ALS,_:ALS_On%0);
 static Hooks_OnScriptInit()
 {
 	P:2("Hooks_OnScriptInit called");
 	new
-		cidx;
-	//HOOKS_DO_ONE_CALLBACK<AnyScriptInit>
-	//HOOKS_DO_ONE_CALLBACK<AnyScriptExit>
-	//HOOKS_DO_ONE_CALLBACK<ScriptInit>
-	//HOOKS_DO_ONE_CALLBACK<ScriptExit>
-	//HOOKS_DO_ONE_CALLBACK<GameModeInit>
-	//HOOKS_DO_ONE_CALLBACK<GameModeExit>
-	//HOOKS_DO_ONE_CALLBACK<FilterScriptInit>
-	//HOOKS_DO_ONE_CALLBACK<FilterScriptExit>
-	ALS_DETECT<ScriptInit>
-	ALS_DETECT<ScriptExit>
-	ALS_DETECT<GameModeInit>
-	ALS_DETECT<GameModeExit>
-	ALS_DETECT<FilterScriptInit>
-	ALS_DETECT<FilterScriptExit>
-	Hooks_FindAll(#ScriptInit, cidx, YSI_g_sCallbackData[ALS_OnScriptInit]);
-	if (YSI_FILTERSCRIPT)
-	{
-		if (!(Hooks_FindAll(#FilterScriptExit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptExit]) + Hooks_FindAll(#ScriptExit, cidx, YSI_g_sCallbackData[ALS_OnScriptExit])))
-		{
-			Hooks_RedirectPublic(#OnFilterScriptExit, #S@@_OnFilterScriptExit);
-		}
-		//HOOKS_DO_ONE_CALLBACK<FilterScriptInit>
-		Hooks_FindAll(#FilterScriptInit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptInit]);
-		HOOKS_DO_ONE_CALLBACK<GameModeInit>
-		HOOKS_DO_ONE_CALLBACK<GameModeExit>
-		//Hooks_FindAll(#FilterScriptExit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptExit], count);
-	}
-	else
-	{
-		if (!(Hooks_FindAll(#GameModeExit, cidx, YSI_g_sCallbackData[ALS_OnGameModeExit]) + Hooks_FindAll(#ScriptExit, cidx, YSI_g_sCallbackData[ALS_OnScriptExit])))
-		{
-			Hooks_RedirectPublic(#OnGameModeExit, #S@@_OnGameModeExit);
-		}
-		Hooks_FindAll(#GameModeInit, cidx, YSI_g_sCallbackData[ALS_OnGameModeInit]);
-		//Hooks_RedirectPublic(#OnGameModeInit, #S@@_OnGameModeInit);
-		Hooks_RedirectPublic(#OnFilterScriptInit, #S@@_OnFilterScriptInit);
-		Hooks_RedirectPublic(#OnFilterScriptExit, #S@@_OnFilterScriptExit);
-	}
-	HOOKS_DO_ONE_CALLBACK<PlayerConnect>
-	HOOKS_DO_ONE_CALLBACK<PlayerDisconnect>
-	HOOKS_DO_ONE_CALLBACK<PlayerSpawn>
-	HOOKS_DO_ONE_CALLBACK<PlayerDeath>
-	HOOKS_DO_ONE_CALLBACK<VehicleSpawn>
-	HOOKS_DO_ONE_CALLBACK<VehicleDeath>
-	HOOKS_DO_ONE_CALLBACK<PlayerText>
-	HOOKS_DO_ONE_CALLBACK<PlayerCommandText>
-	HOOKS_DO_ONE_CALLBACK<PlayerRequestClass>
-	HOOKS_DO_ONE_CALLBACK<PlayerEnterVehicle>
-	HOOKS_DO_ONE_CALLBACK<PlayerExitVehicle>
-	HOOKS_DO_ONE_CALLBACK<PlayerStateChange>
-	HOOKS_DO_ONE_CALLBACK<PlayerEnterCheckpoint>
-	HOOKS_DO_ONE_CALLBACK<PlayerLeaveCheckpoint>
-	HOOKS_DO_ONE_CALLBACK<PlayerEnterRaceCheckpoint>
-	HOOKS_DO_ONE_CALLBACK<PlayerLeaveRaceCheckpoint>
-	HOOKS_DO_ONE_CALLBACK<RconCommand>
-	HOOKS_DO_ONE_CALLBACK<PlayerRequestSpawn>
-	HOOKS_DO_ONE_CALLBACK<ObjectMoved>
-	HOOKS_DO_ONE_CALLBACK<PlayerObjectMoved>
-	HOOKS_DO_ONE_CALLBACK<PlayerPickUpPickup>
-	HOOKS_DO_ONE_CALLBACK<VehicleMod>
-	HOOKS_DO_ONE_CALLBACK<EnterExitModShop>
-	HOOKS_DO_ONE_CALLBACK<VehiclePaintjob>
-	HOOKS_DO_ONE_CALLBACK<VehicleRespray>
-	HOOKS_DO_ONE_CALLBACK<VehicleDamageStatusUpdate>
-	HOOKS_DO_ONE_CALLBACK<PlayerSelectedMenuRow>
-	HOOKS_DO_ONE_CALLBACK<PlayerExitedMenu>
-	HOOKS_DO_ONE_CALLBACK<PlayerInteriorChange>
-	HOOKS_DO_ONE_CALLBACK<PlayerKeyStateChange>
-	HOOKS_DO_ONE_CALLBACK<RconLoginAttempt>
-	HOOKS_DO_ONE_CALLBACK<PlayerUpdate>
-	HOOKS_DO_ONE_CALLBACK<PlayerStreamIn>
-	HOOKS_DO_ONE_CALLBACK<PlayerStreamOut>
-	HOOKS_DO_ONE_CALLBACK<VehicleStreamIn>
-	HOOKS_DO_ONE_CALLBACK<VehicleStreamOut>
-	HOOKS_DO_ONE_CALLBACK<DialogResponse>
-	HOOKS_DO_ONE_CALLBACK<PlayerClickPlayer>
-	HOOKS_DO_ONE_CALLBACK<PlayerGiveDamage>
-	HOOKS_DO_ONE_CALLBACK<PlayerTakeDamage>
-	HOOKS_DO_ONE_CALLBACK<PlayerClickMap>
-	HOOKS_DO_ONE_CALLBACK<UnoccupiedVehicleUpdate>
+		cidx,
+		count;
+	//iALS_DETECT<AnyScriptInit>Hooks_FindAll(#AnyScriptInit,cidx,YSI_g_sCallbackData[ALS_OnAnyScriptInit],count);if(!count)Hooks_RedirectPublic(#OnAnyScriptInit,#S@@_OnAnyScriptInit);
+	//ALS_DETECT<AnyScriptExit>Hooks_FindAll(#AnyScriptExit,cidx,YSI_g_sCallbackData[ALS_OnAnyScriptExit],count);if(!count)Hooks_RedirectPublic(#OnAnyScriptExit,#S@@_OnAnyScriptExit);
+	if(funcidx("S@@_OnScriptInit")!=-1)Bit_Let(gs_ALS,_:ALS_OnScriptInit);Hooks_FindAll(#ScriptInit,cidx,YSI_g_sCallbackData[ALS_OnScriptInit],count);if(!count)Hooks_RedirectPublic(#OnScriptInit,#S@@_OnScriptInit);
+	if(funcidx("S@@_OnScriptExit")!=-1)Bit_Let(gs_ALS,_:ALS_OnScriptExit);Hooks_FindAll(#ScriptExit,cidx,YSI_g_sCallbackData[ALS_OnScriptExit],count);if(!count)Hooks_RedirectPublic(#OnScriptExit,#S@@_OnScriptExit);
+	if(funcidx("S@@_OnGameModeInit")!=-1)Bit_Let(gs_ALS,_:ALS_OnGameModeInit);Hooks_FindAll(#GameModeInit,cidx,YSI_g_sCallbackData[ALS_OnGameModeInit],count);if(!count)Hooks_RedirectPublic(#OnGameModeInit,#S@@_OnGameModeInit);
+	if(funcidx("S@@_OnGameModeExit")!=-1)Bit_Let(gs_ALS,_:ALS_OnGameModeExit);Hooks_FindAll(#GameModeExit,cidx,YSI_g_sCallbackData[ALS_OnGameModeExit],count);if(!count)Hooks_RedirectPublic(#OnGameModeExit,#S@@_OnGameModeExit);
+	if(funcidx("S@@_OnFilterScriptInit")!=-1)Bit_Let(gs_ALS,_:ALS_OnFilterScriptInit);Hooks_FindAll(#FilterScriptInit,cidx,YSI_g_sCallbackData[ALS_OnFilterScriptInit],count);if(!count)Hooks_RedirectPublic(#OnFilterScriptInit,#S@@_OnFilterScriptInit);
+	if(funcidx("S@@_OnFilterScriptExit")!=-1)Bit_Let(gs_ALS,_:ALS_OnFilterScriptExit);Hooks_FindAll(#FilterScriptExit,cidx,YSI_g_sCallbackData[ALS_OnFilterScriptExit],count);if(!count)Hooks_RedirectPublic(#OnFilterScriptExit,#S@@_OnFilterScriptExit);
+	if(funcidx("S@@_OnPlayerConnect")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerConnect);Hooks_FindAll(#PlayerConnect,cidx,YSI_g_sCallbackData[ALS_OnPlayerConnect],count);if(!count)Hooks_RedirectPublic(#OnPlayerConnect,#S@@_OnPlayerConnect);
+	if(funcidx("S@@_OnPlayerDisconnect")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerDisconnect);Hooks_FindAll(#PlayerDisconnect,cidx,YSI_g_sCallbackData[ALS_OnPlayerDisconnect],count);if(!count)Hooks_RedirectPublic(#OnPlayerDisconnect,#S@@_OnPlayerDisconnect);
+	if(funcidx("S@@_OnPlayerSpawn")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerSpawn);Hooks_FindAll(#PlayerSpawn,cidx,YSI_g_sCallbackData[ALS_OnPlayerSpawn],count);if(!count)Hooks_RedirectPublic(#OnPlayerSpawn,#S@@_OnPlayerSpawn);
+	if(funcidx("S@@_OnPlayerDeath")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerDeath);Hooks_FindAll(#PlayerDeath,cidx,YSI_g_sCallbackData[ALS_OnPlayerDeath],count);if(!count)Hooks_RedirectPublic(#OnPlayerDeath,#S@@_OnPlayerDeath);
+	if(funcidx("S@@_OnVehicleSpawn")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleSpawn);Hooks_FindAll(#VehicleSpawn,cidx,YSI_g_sCallbackData[ALS_OnVehicleSpawn],count);if(!count)Hooks_RedirectPublic(#OnVehicleSpawn,#S@@_OnVehicleSpawn);
+	if(funcidx("S@@_OnVehicleDeath")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleDeath);Hooks_FindAll(#VehicleDeath,cidx,YSI_g_sCallbackData[ALS_OnVehicleDeath],count);if(!count)Hooks_RedirectPublic(#OnVehicleDeath,#S@@_OnVehicleDeath);
+	if(funcidx("S@@_OnPlayerText")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerText);Hooks_FindAll(#PlayerText,cidx,YSI_g_sCallbackData[ALS_OnPlayerText],count);if(!count)Hooks_RedirectPublic(#OnPlayerText,#S@@_OnPlayerText);
+	if(funcidx("S@@_OnPlayerCommandText")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerCommandText);Hooks_FindAll(#PlayerCommandText,cidx,YSI_g_sCallbackData[ALS_OnPlayerCommandText],count);if(!count)Hooks_RedirectPublic(#OnPlayerCommandText,#S@@_OnPlayerCommandText);
+	if(funcidx("S@@_OnPlayerRequestClass")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerRequestClass);Hooks_FindAll(#PlayerRequestClass,cidx,YSI_g_sCallbackData[ALS_OnPlayerRequestClass],count);if(!count)Hooks_RedirectPublic(#OnPlayerRequestClass,#S@@_OnPlayerRequestClass);
+	if(funcidx("S@@_OnPlayerEnterVehicle")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerEnterVehicle);Hooks_FindAll(#PlayerEnterVehicle,cidx,YSI_g_sCallbackData[ALS_OnPlayerEnterVehicle],count);if(!count)Hooks_RedirectPublic(#OnPlayerEnterVehicle,#S@@_OnPlayerEnterVehicle);
+	if(funcidx("S@@_OnPlayerExitVehicle")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerExitVehicle);Hooks_FindAll(#PlayerExitVehicle,cidx,YSI_g_sCallbackData[ALS_OnPlayerExitVehicle],count);if(!count)Hooks_RedirectPublic(#OnPlayerExitVehicle,#S@@_OnPlayerExitVehicle);
+	if(funcidx("S@@_OnPlayerStateChange")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerStateChange);Hooks_FindAll(#PlayerStateChange,cidx,YSI_g_sCallbackData[ALS_OnPlayerStateChange],count);if(!count)Hooks_RedirectPublic(#OnPlayerStateChange,#S@@_OnPlayerStateChange);
+	if(funcidx("S@@_OnPlayerEnterCheckpoint")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerEnterCheckpoint);Hooks_FindAll(#PlayerEnterCheckpoint,cidx,YSI_g_sCallbackData[ALS_OnPlayerEnterCheckpoint],count);if(!count)Hooks_RedirectPublic(#OnPlayerEnterCheckpoint,#S@@_OnPlayerEnterCheckpoint);
+	if(funcidx("S@@_OnPlayerLeaveCheckpoint")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerLeaveCheckpoint);Hooks_FindAll(#PlayerLeaveCheckpoint,cidx,YSI_g_sCallbackData[ALS_OnPlayerLeaveCheckpoint],count);if(!count)Hooks_RedirectPublic(#OnPlayerLeaveCheckpoint,#S@@_OnPlayerLeaveCheckpoint);
+	if(funcidx("S@@_OnPlayerEnterRaceCheckpoint")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerEnterRaceCheckpoint);Hooks_FindAll(#PlayerEnterRaceCheckpoint,cidx,YSI_g_sCallbackData[ALS_OnPlayerEnterRaceCheckpoint],count);if(!count)Hooks_RedirectPublic(#OnPlayerEnterRaceCheckpoint,#S@@_OnPlayerEnterRaceCheckpoint);
+	if(funcidx("S@@_OnPlayerLeaveRaceCheckpoint")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerLeaveRaceCheckpoint);Hooks_FindAll(#PlayerLeaveRaceCheckpoint,cidx,YSI_g_sCallbackData[ALS_OnPlayerLeaveRaceCheckpoint],count);if(!count)Hooks_RedirectPublic(#OnPlayerLeaveRaceCheckpoint,#S@@_OnPlayerLeaveRaceCheckpoint);
+	if(funcidx("S@@_OnRconCommand")!=-1)Bit_Let(gs_ALS,_:ALS_OnRconCommand);Hooks_FindAll(#RconCommand,cidx,YSI_g_sCallbackData[ALS_OnRconCommand],count);if(!count)Hooks_RedirectPublic(#OnRconCommand,#S@@_OnRconCommand);
+	if(funcidx("S@@_OnPlayerRequestSpawn")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerRequestSpawn);Hooks_FindAll(#PlayerRequestSpawn,cidx,YSI_g_sCallbackData[ALS_OnPlayerRequestSpawn],count);if(!count)Hooks_RedirectPublic(#OnPlayerRequestSpawn,#S@@_OnPlayerRequestSpawn);
+	if(funcidx("S@@_OnObjectMoved")!=-1)Bit_Let(gs_ALS,_:ALS_OnObjectMoved);Hooks_FindAll(#ObjectMoved,cidx,YSI_g_sCallbackData[ALS_OnObjectMoved],count);if(!count)Hooks_RedirectPublic(#OnObjectMoved,#S@@_OnObjectMoved);
+	if(funcidx("S@@_OnPlayerObjectMoved")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerObjectMoved);Hooks_FindAll(#PlayerObjectMoved,cidx,YSI_g_sCallbackData[ALS_OnPlayerObjectMoved],count);if(!count)Hooks_RedirectPublic(#OnPlayerObjectMoved,#S@@_OnPlayerObjectMoved);
+	if(funcidx("S@@_OnPlayerPickUpPickup")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerPickUpPickup);Hooks_FindAll(#PlayerPickUpPickup,cidx,YSI_g_sCallbackData[ALS_OnPlayerPickUpPickup],count);if(!count)Hooks_RedirectPublic(#OnPlayerPickUpPickup,#S@@_OnPlayerPickUpPickup);
+	if(funcidx("S@@_OnVehicleMod")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleMod);Hooks_FindAll(#VehicleMod,cidx,YSI_g_sCallbackData[ALS_OnVehicleMod],count);if(!count)Hooks_RedirectPublic(#OnVehicleMod,#S@@_OnVehicleMod);
+	if(funcidx("S@@_OnEnterExitModShop")!=-1)Bit_Let(gs_ALS,_:ALS_OnEnterExitModShop);Hooks_FindAll(#EnterExitModShop,cidx,YSI_g_sCallbackData[ALS_OnEnterExitModShop],count);if(!count)Hooks_RedirectPublic(#OnEnterExitModShop,#S@@_OnEnterExitModShop);
+	if(funcidx("S@@_OnVehiclePaintjob")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehiclePaintjob);Hooks_FindAll(#VehiclePaintjob,cidx,YSI_g_sCallbackData[ALS_OnVehiclePaintjob],count);if(!count)Hooks_RedirectPublic(#OnVehiclePaintjob,#S@@_OnVehiclePaintjob);
+	if(funcidx("S@@_OnVehicleRespray")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleRespray);Hooks_FindAll(#VehicleRespray,cidx,YSI_g_sCallbackData[ALS_OnVehicleRespray],count);if(!count)Hooks_RedirectPublic(#OnVehicleRespray,#S@@_OnVehicleRespray);
+	if(funcidx("S@@_OnVehicleDamageStatusUpdate")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleDamageStatusUpdate);Hooks_FindAll(#VehicleDamageStatusUpdate,cidx,YSI_g_sCallbackData[ALS_OnVehicleDamageStatusUpdate],count);if(!count)Hooks_RedirectPublic(#OnVehicleDamageStatusUpdate,#S@@_OnVehicleDamageStatusUpdate);
+	if(funcidx("S@@_OnPlayerSelectedMenuRow")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerSelectedMenuRow);Hooks_FindAll(#PlayerSelectedMenuRow,cidx,YSI_g_sCallbackData[ALS_OnPlayerSelectedMenuRow],count);if(!count)Hooks_RedirectPublic(#OnPlayerSelectedMenuRow,#S@@_OnPlayerSelectedMenuRow);
+	if(funcidx("S@@_OnPlayerExitedMenu")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerExitedMenu);Hooks_FindAll(#PlayerExitedMenu,cidx,YSI_g_sCallbackData[ALS_OnPlayerExitedMenu],count);if(!count)Hooks_RedirectPublic(#OnPlayerExitedMenu,#S@@_OnPlayerExitedMenu);
+	if(funcidx("S@@_OnPlayerInteriorChange")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerInteriorChange);Hooks_FindAll(#PlayerInteriorChange,cidx,YSI_g_sCallbackData[ALS_OnPlayerInteriorChange],count);if(!count)Hooks_RedirectPublic(#OnPlayerInteriorChange,#S@@_OnPlayerInteriorChange);
+	if(funcidx("S@@_OnPlayerKeyStateChange")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerKeyStateChange);Hooks_FindAll(#PlayerKeyStateChange,cidx,YSI_g_sCallbackData[ALS_OnPlayerKeyStateChange],count);if(!count)Hooks_RedirectPublic(#OnPlayerKeyStateChange,#S@@_OnPlayerKeyStateChange);
+	if(funcidx("S@@_OnRconLoginAttempt")!=-1)Bit_Let(gs_ALS,_:ALS_OnRconLoginAttempt);Hooks_FindAll(#RconLoginAttempt,cidx,YSI_g_sCallbackData[ALS_OnRconLoginAttempt],count);if(!count)Hooks_RedirectPublic(#OnRconLoginAttempt,#S@@_OnRconLoginAttempt);
+	if(funcidx("S@@_OnPlayerUpdate")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerUpdate);Hooks_FindAll(#PlayerUpdate,cidx,YSI_g_sCallbackData[ALS_OnPlayerUpdate],count);if(!count)Hooks_RedirectPublic(#OnPlayerUpdate,#S@@_OnPlayerUpdate);
+	if(funcidx("S@@_OnPlayerStreamIn")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerStreamIn);Hooks_FindAll(#PlayerStreamIn,cidx,YSI_g_sCallbackData[ALS_OnPlayerStreamIn],count);if(!count)Hooks_RedirectPublic(#OnPlayerStreamIn,#S@@_OnPlayerStreamIn);
+	if(funcidx("S@@_OnPlayerStreamOut")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerStreamOut);Hooks_FindAll(#PlayerStreamOut,cidx,YSI_g_sCallbackData[ALS_OnPlayerStreamOut],count);if(!count)Hooks_RedirectPublic(#OnPlayerStreamOut,#S@@_OnPlayerStreamOut);
+	if(funcidx("S@@_OnVehicleStreamIn")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleStreamIn);Hooks_FindAll(#VehicleStreamIn,cidx,YSI_g_sCallbackData[ALS_OnVehicleStreamIn],count);if(!count)Hooks_RedirectPublic(#OnVehicleStreamIn,#S@@_OnVehicleStreamIn);
+	if(funcidx("S@@_OnVehicleStreamOut")!=-1)Bit_Let(gs_ALS,_:ALS_OnVehicleStreamOut);Hooks_FindAll(#VehicleStreamOut,cidx,YSI_g_sCallbackData[ALS_OnVehicleStreamOut],count);if(!count)Hooks_RedirectPublic(#OnVehicleStreamOut,#S@@_OnVehicleStreamOut);
+	if(funcidx("S@@_OnDialogResponse")!=-1)Bit_Let(gs_ALS,_:ALS_OnDialogResponse);Hooks_FindAll(#DialogResponse,cidx,YSI_g_sCallbackData[ALS_OnDialogResponse],count);if(!count)Hooks_RedirectPublic(#OnDialogResponse,#S@@_OnDialogResponse);
+	if(funcidx("S@@_OnPlayerClickPlayer")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerClickPlayer);Hooks_FindAll(#PlayerClickPlayer,cidx,YSI_g_sCallbackData[ALS_OnPlayerClickPlayer],count);if(!count)Hooks_RedirectPublic(#OnPlayerClickPlayer,#S@@_OnPlayerClickPlayer);
+	if(funcidx("S@@_OnPlayerGiveDamage")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerGiveDamage);Hooks_FindAll(#PlayerGiveDamage,cidx,YSI_g_sCallbackData[ALS_OnPlayerGiveDamage],count);if(!count)Hooks_RedirectPublic(#OnPlayerGiveDamage,#S@@_OnPlayerGiveDamage);
+	if(funcidx("S@@_OnPlayerTakeDamage")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerTakeDamage);Hooks_FindAll(#PlayerTakeDamage,cidx,YSI_g_sCallbackData[ALS_OnPlayerTakeDamage],count);if(!count)Hooks_RedirectPublic(#OnPlayerTakeDamage,#S@@_OnPlayerTakeDamage);
+	if(funcidx("S@@_OnPlayerClickMap")!=-1)Bit_Let(gs_ALS,_:ALS_OnPlayerClickMap);Hooks_FindAll(#PlayerClickMap,cidx,YSI_g_sCallbackData[ALS_OnPlayerClickMap],count);if(!count)Hooks_RedirectPublic(#OnPlayerClickMap,#S@@_OnPlayerClickMap);
+	if(funcidx("S@@_OnUnoccupiedVehicleUpdate")!=-1)Bit_Let(gs_ALS,_:ALS_OnUnoccupiedVehicleUpdate);Hooks_FindAll(#UnoccupiedVehicleUpdate,cidx,YSI_g_sCallbackData[ALS_OnUnoccupiedVehicleUpdate],count);if(!count)Hooks_RedirectPublic(#OnUnoccupiedVehicleUpdate,#S@@_OnUnoccupiedVehicleUpdate);
 	// YSI callbacks.
-	HOOKS_DO_ONE_SPECIAL<PlayerLogin>
-	HOOKS_DO_ONE_SPECIAL<PlayerLogout>
-	//ALS_DETECT<%0>Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
-	//ALS_DETECT<%0>Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
+	//HOOKS_DO_ONE_SPECIAL<PlayerLogin>
+	//HOOKS_DO_ONE_SPECIAL<PlayerLogout>
+	Hooks_FindAll(#PlayerLogin,cidx,YSI_g_sCallbackData[ALS_OnPlayerLogin],count);if(count)state y_hooks_PlayerLogin : y_hooks_PlayerLogin_some;else state y_hooks_PlayerLogin : y_hooks_PlayerLogin_none;
+	Hooks_FindAll(#PlayerLogin,cidx,YSI_g_sCallbackData[ALS_OnPlayerLogin],count);if(count)state y_hooks_PlayerLogin : y_hooks_PlayerLogin_some;else state y_hooks_PlayerLogin : y_hooks_PlayerLogin_none;
+	//if(funcidx("S@@_On%0")!=-1)Bit_Let(gs_ALS,_:ALS_On%0);Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
+	//if(funcidx("S@@_On%0")!=-1)Bit_Let(gs_ALS,_:ALS_On%0);Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
 	#if defined YSI_LOCK_MODE
 		YSI_gLockData[1] = floatround(floatlog(_LOCK_LEN_0 + 1), floatround_ceil);
 		YSI_gLockData[0] = 5 + YSI_gLockData[1];
@@ -487,7 +361,7 @@ public OnGameModeInit()
 		//printf("%d", ret);
 		//printf("%d", Bit_GetBit(Bit:gs_ALS, _:ALS_OnGameModeInit));
 		//printf("%d", P@("S@@_OnGameModeInit", ""));
-		HOOK_CALL<GameModeInit>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnGameModeInit))return P@("S@@_OnGameModeInit","");hooks_do_hooks_call_no_als:return ret;
 		//hooks_do_hooks_call_no_als:
 		//printf("end 2");
 		//return 1;
@@ -532,7 +406,7 @@ public OnGameModeInit()
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnGameModeInit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnGameModeInit));
-	HOOK_RETURN<GameModeInit>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnGameModeInit)?P@("S@@_OnGameModeInit",""):ret;
 	//return 1;
 }
 #if defined _ALS_OnGameModeInit
@@ -558,7 +432,7 @@ public OnGameModeExit()
 	if (start == end)
 	{
 		P:2("Hooks_OnGameModeExit end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnGameModeExit));
-		HOOK_CALL<GameModeExit>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnGameModeExit))return P@("S@@_OnGameModeExit","");hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -599,7 +473,7 @@ public OnGameModeExit()
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnGameModeExit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnGameModeExit));
-	HOOK_RETURN<GameModeExit>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnGameModeExit)?P@("S@@_OnGameModeExit",""):ret;
 }
 #if defined _ALS_OnGameModeExit
 	#undef OnGameModeExit
@@ -619,7 +493,7 @@ ALS_FORWARD<GameModeExit>
 	if (start == end)
 	{
 		P:2("Hooks_OnAnyScriptInit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnAnyScriptInit));
-		//HOOK_CALL<AnyScriptInit>
+		//if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnAnyScriptInit))return P@("S@@_OnAnyScriptInit",#%2,%3);hooks_do_hooks_call_no_als:return ret;
 hooks_do_hooks_call_no_als:
 		return;
 	}
@@ -663,7 +537,7 @@ hooks_do_hooks_call_no_als:
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnAnyScriptInit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnAnyScriptInit));
-	//HOOK_RETURN<AnyScriptInit>
+	//return Bit_GetBit(Bit:gs_ALS,_:ALS_OnAnyScriptInit)?P@("S@@_OnAnyScriptInit",#%2,%3):ret;
 }
 
 static Hooks_OnAnyScriptExit()
@@ -676,7 +550,7 @@ static Hooks_OnAnyScriptExit()
 	if (start == end)
 	{
 		P:2("Hooks_OnAnyScriptExit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnAnyScriptExit));
-		//HOOK_CALL<AnyScriptExit>
+		//if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnAnyScriptExit))return P@("S@@_OnAnyScriptExit",#%2,%3);hooks_do_hooks_call_no_als:return ret;
 hooks_do_hooks_call_no_als:
 		return;
 	}
@@ -719,7 +593,7 @@ hooks_do_hooks_call_no_als:
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnAnyScriptExit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnAnyScriptExit));
-	//HOOK_RETURN<AnyScriptExit>
+	//return Bit_GetBit(Bit:gs_ALS,_:ALS_OnAnyScriptExit)?P@("S@@_OnAnyScriptExit",#%2,%3):ret;
 }*/
 
 public OnFilterScriptInit()
@@ -745,7 +619,7 @@ public OnFilterScriptInit()
 	if (start == end)
 	{
 		P:2("Hooks_OnFilterScriptInit end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnFilterScriptInit));
-		HOOK_CALL<FilterScriptInit>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnFilterScriptInit))return P@("S@@_OnFilterScriptInit","");hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -786,7 +660,7 @@ public OnFilterScriptInit()
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnFilterScriptInit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnFilterScriptInit));
-	HOOK_RETURN<FilterScriptInit>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnFilterScriptInit)?P@("S@@_OnFilterScriptInit",""):ret;
 }
 #if defined _ALS_OnFilterScriptInit
 	#undef OnFilterScriptInit
@@ -808,7 +682,7 @@ public OnFilterScriptExit()
 	if (start == end)
 	{
 		P:2("Hooks_OnFilterScriptExit end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnFilterScriptExit));
-		HOOK_CALL<FilterScriptExit>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnFilterScriptExit))return P@("S@@_OnFilterScriptExit","");hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -849,7 +723,7 @@ public OnFilterScriptExit()
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnFilterScriptExit end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnFilterScriptExit));
-	HOOK_RETURN<FilterScriptExit>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnFilterScriptExit)?P@("S@@_OnFilterScriptExit",""):ret;
 }
 #if defined _ALS_OnFilterScriptExit
 	#undef OnFilterScriptExit
@@ -869,7 +743,7 @@ public OnPlayerConnect(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerConnect end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerConnect));
-		HOOK_CALL<PlayerConnect>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerConnect))return P@("S@@_OnPlayerConnect","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		pointer,
@@ -930,7 +804,7 @@ public OnPlayerConnect(playerid)
 	//#emit STACK      12
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerConnect end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerConnect));
-	HOOK_RETURN<PlayerConnect>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerConnect)?P@("S@@_OnPlayerConnect","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerConnect
 	#undef OnPlayerConnect
@@ -950,7 +824,7 @@ public OnPlayerDisconnect(playerid, reason)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerDisconnect end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerDisconnect));
-		HOOK_CALL<PlayerDisconnect>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerDisconnect))return P@("S@@_OnPlayerDisconnect","ii",playerid,reason);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -995,7 +869,7 @@ public OnPlayerDisconnect(playerid, reason)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerDisconnect end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerDisconnect));
-	HOOK_RETURN<PlayerDisconnect>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerDisconnect)?P@("S@@_OnPlayerDisconnect","ii",playerid,reason):ret;
 }
 #if defined _ALS_OnPlayerDisconnect
 	#undef OnPlayerDisconnect
@@ -1015,7 +889,7 @@ public OnPlayerSpawn(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerSpawn end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerSpawn));
-		HOOK_CALL<PlayerSpawn>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerSpawn))return P@("S@@_OnPlayerSpawn","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1058,7 +932,7 @@ public OnPlayerSpawn(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerSpawn end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerSpawn));
-	HOOK_RETURN<PlayerSpawn>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerSpawn)?P@("S@@_OnPlayerSpawn","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerSpawn
 	#undef OnPlayerSpawn
@@ -1078,7 +952,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerDeath end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerDeath));
-		HOOK_CALL<PlayerDeath>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerDeath))return P@("S@@_OnPlayerDeath","iii",playerid,killerid,reason);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1125,7 +999,7 @@ public OnPlayerDeath(playerid, killerid, reason)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerDeath end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerDeath));
-	HOOK_RETURN<PlayerDeath>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerDeath)?P@("S@@_OnPlayerDeath","iii",playerid,killerid,reason):ret;
 }
 #if defined _ALS_OnPlayerDeath
 	#undef OnPlayerDeath
@@ -1145,7 +1019,7 @@ public OnVehicleSpawn(vehicleid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleSpawn end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleSpawn));
-		HOOK_CALL<VehicleSpawn>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleSpawn))return P@("S@@_OnVehicleSpawn","i",vehicleid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1188,7 +1062,7 @@ public OnVehicleSpawn(vehicleid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleSpawn end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleSpawn));
-	HOOK_RETURN<VehicleSpawn>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleSpawn)?P@("S@@_OnVehicleSpawn","i",vehicleid):ret;
 }
 #if defined _ALS_OnVehicleSpawn
 	#undef OnVehicleSpawn
@@ -1208,7 +1082,7 @@ public OnVehicleDeath(vehicleid, killerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleDeath end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleDeath));
-		HOOK_CALL<VehicleDeath>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleDeath))return P@("S@@_OnVehicleDeath","ii",vehicleid,killerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1253,7 +1127,7 @@ public OnVehicleDeath(vehicleid, killerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleDeath end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleDeath));
-	HOOK_RETURN<VehicleDeath>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleDeath)?P@("S@@_OnVehicleDeath","ii",vehicleid,killerid):ret;
 }
 #if defined _ALS_OnVehicleDeath
 	#undef OnVehicleDeath
@@ -1273,7 +1147,7 @@ public OnPlayerText(playerid, text[])
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerText end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerText));
-		HOOK_CALL<PlayerText>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerText))return P@("S@@_OnPlayerText","is",playerid,(text[0])?(text):NULL);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1318,7 +1192,7 @@ public OnPlayerText(playerid, text[])
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerText end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerText));
-	HOOK_RETURN<PlayerText>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerText)?P@("S@@_OnPlayerText","is",playerid,(text[0])?(text):NULL):ret;
 }
 #if defined _ALS_OnPlayerText
 	#undef OnPlayerText
@@ -1338,7 +1212,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerCommandText end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerCommandText));
-		HOOK_CALL<PlayerCommandText>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerCommandText))return P@("S@@_OnPlayerCommandText","is",playerid,(cmdtext[0])?(cmdtext):NULL);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1383,7 +1257,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerCommandText end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerCommandText));
-	HOOK_RETURN<PlayerCommandText>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerCommandText)?P@("S@@_OnPlayerCommandText","is",playerid,(cmdtext[0])?(cmdtext):NULL):ret;
 }
 #if defined _ALS_OnPlayerCommandText
 	#undef OnPlayerCommandText
@@ -1403,7 +1277,7 @@ public OnPlayerRequestClass(playerid, classid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerRequestClass end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerRequestClass));
-		HOOK_CALL<PlayerRequestClass>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerRequestClass))return P@("S@@_OnPlayerRequestClass","ii",playerid,classid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1448,7 +1322,7 @@ public OnPlayerRequestClass(playerid, classid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerRequestClass end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerRequestClass));
-	HOOK_RETURN<PlayerRequestClass>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerRequestClass)?P@("S@@_OnPlayerRequestClass","ii",playerid,classid):ret;
 }
 #if defined _ALS_OnPlayerRequestClass
 	#undef OnPlayerRequestClass
@@ -1468,7 +1342,7 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerEnterVehicle end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterVehicle));
-		HOOK_CALL<PlayerEnterVehicle>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterVehicle))return P@("S@@_OnPlayerEnterVehicle","iii",playerid,vehicleid,ispassenger);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1515,7 +1389,7 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerEnterVehicle end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterVehicle));
-	HOOK_RETURN<PlayerEnterVehicle>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterVehicle)?P@("S@@_OnPlayerEnterVehicle","iii",playerid,vehicleid,ispassenger):ret;
 }
 #if defined _ALS_OnPlayerEnterVehicle
 	#undef OnPlayerEnterVehicle
@@ -1535,7 +1409,7 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerExitVehicle end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerExitVehicle));
-		HOOK_CALL<PlayerExitVehicle>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerExitVehicle))return P@("S@@_OnPlayerExitVehicle","ii",playerid,vehicleid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1580,7 +1454,7 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerExitVehicle end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerExitVehicle));
-	HOOK_RETURN<PlayerExitVehicle>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerExitVehicle)?P@("S@@_OnPlayerExitVehicle","ii",playerid,vehicleid):ret;
 }
 #if defined _ALS_OnPlayerExitVehicle
 	#undef OnPlayerExitVehicle
@@ -1600,7 +1474,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerStateChange end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStateChange));
-		HOOK_CALL<PlayerStateChange>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStateChange))return P@("S@@_OnPlayerStateChange","iii",playerid,newstate,oldstate);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1647,7 +1521,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerStateChange end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStateChange));
-	HOOK_RETURN<PlayerStateChange>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStateChange)?P@("S@@_OnPlayerStateChange","iii",playerid,newstate,oldstate):ret;
 }
 #if defined _ALS_OnPlayerStateChange
 	#undef OnPlayerStateChange
@@ -1667,7 +1541,7 @@ public OnPlayerEnterCheckpoint(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerEnterCheckpoint end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterCheckpoint));
-		HOOK_CALL<PlayerEnterCheckpoint>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterCheckpoint))return P@("S@@_OnPlayerEnterCheckpoint","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1710,7 +1584,7 @@ public OnPlayerEnterCheckpoint(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerEnterCheckpoint end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterCheckpoint));
-	HOOK_RETURN<PlayerEnterCheckpoint>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterCheckpoint)?P@("S@@_OnPlayerEnterCheckpoint","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerEnterCheckpoint
 	#undef OnPlayerEnterCheckpoint
@@ -1730,7 +1604,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerLeaveCheckpoint end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLeaveCheckpoint));
-		HOOK_CALL<PlayerLeaveCheckpoint>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLeaveCheckpoint))return P@("S@@_OnPlayerLeaveCheckpoint","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1773,7 +1647,7 @@ public OnPlayerLeaveCheckpoint(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerLeaveCheckpoint end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLeaveCheckpoint));
-	HOOK_RETURN<PlayerLeaveCheckpoint>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLeaveCheckpoint)?P@("S@@_OnPlayerLeaveCheckpoint","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerLeaveCheckpoint
 	#undef OnPlayerLeaveCheckpoint
@@ -1793,7 +1667,7 @@ public OnPlayerEnterRaceCheckpoint(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerEnterRaceCheckpoint end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterRaceCheckpoint));
-		HOOK_CALL<PlayerEnterRaceCheckpoint>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterRaceCheckpoint))return P@("S@@_OnPlayerEnterRaceCheckpoint","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1836,7 +1710,7 @@ public OnPlayerEnterRaceCheckpoint(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerEnterRaceCheckpoint end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerEnterRaceCheckpoint));
-	HOOK_RETURN<PlayerEnterRaceCheckpoint>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerEnterRaceCheckpoint)?P@("S@@_OnPlayerEnterRaceCheckpoint","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerEnterRaceCP
 	#undef OnPlayerEnterRaceCheckpoint
@@ -1856,7 +1730,7 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerLeaveRaceCheckpoint end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLeaveRaceCheckpoint));
-		HOOK_CALL<PlayerLeaveRaceCheckpoint>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLeaveRaceCheckpoint))return P@("S@@_OnPlayerLeaveRaceCheckpoint","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1899,7 +1773,7 @@ public OnPlayerLeaveRaceCheckpoint(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerLeaveRaceCheckpoint end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLeaveRaceCheckpoint));
-	HOOK_RETURN<PlayerLeaveRaceCheckpoint>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLeaveRaceCheckpoint)?P@("S@@_OnPlayerLeaveRaceCheckpoint","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerLeaveRaceCP
 	#undef OnPlayerLeaveRaceCheckpoint
@@ -1919,7 +1793,7 @@ public OnRconCommand(cmd[])
 	if (start == end)
 	{
 		P:2("Hooks_OnRconCommand end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnRconCommand));
-		HOOK_CALL<RconCommand>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnRconCommand))return P@("S@@_OnRconCommand","s",(cmd[0])?(cmd):NULL);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -1962,7 +1836,7 @@ public OnRconCommand(cmd[])
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnRconCommand end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnRconCommand));
-	HOOK_RETURN<RconCommand>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnRconCommand)?P@("S@@_OnRconCommand","s",(cmd[0])?(cmd):NULL):ret;
 }
 #if defined _ALS_OnRconCommand
 	#undef OnRconCommand
@@ -1982,7 +1856,7 @@ public OnPlayerRequestSpawn(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerRequestSpawn end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerRequestSpawn));
-		HOOK_CALL<PlayerRequestSpawn>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerRequestSpawn))return P@("S@@_OnPlayerRequestSpawn","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2025,7 +1899,7 @@ public OnPlayerRequestSpawn(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerRequestSpawn end: %d %d", _:Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerRequestSpawn), ret);
-	HOOK_RETURN<PlayerRequestSpawn>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerRequestSpawn)?P@("S@@_OnPlayerRequestSpawn","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerRequestSpawn
 	#undef OnPlayerRequestSpawn
@@ -2045,7 +1919,7 @@ public OnObjectMoved(objectid)
 	if (start == end)
 	{
 		P:2("Hooks_OnObjectMoved end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnObjectMoved));
-		HOOK_CALL<ObjectMoved>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnObjectMoved))return P@("S@@_OnObjectMoved","i",objectid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2088,7 +1962,7 @@ public OnObjectMoved(objectid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnObjectMoved end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnObjectMoved));
-	HOOK_RETURN<ObjectMoved>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnObjectMoved)?P@("S@@_OnObjectMoved","i",objectid):ret;
 }
 #if defined _ALS_OnObjectMoved
 	#undef OnObjectMoved
@@ -2108,7 +1982,7 @@ public OnPlayerObjectMoved(playerid, objectid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerObjectMoved end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerObjectMoved));
-		HOOK_CALL<PlayerObjectMoved>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerObjectMoved))return P@("S@@_OnPlayerObjectMoved","ii",playerid,objectid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2153,7 +2027,7 @@ public OnPlayerObjectMoved(playerid, objectid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerObjectMoved end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerObjectMoved));
-	HOOK_RETURN<PlayerObjectMoved>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerObjectMoved)?P@("S@@_OnPlayerObjectMoved","ii",playerid,objectid):ret;
 }
 #if defined _ALS_OnPlayerObjectMoved
 	#undef OnPlayerObjectMoved
@@ -2173,7 +2047,7 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerPickUpPickup end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerPickUpPickup));
-		HOOK_CALL<PlayerPickUpPickup>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerPickUpPickup))return P@("S@@_OnPlayerPickUpPickup","ii",playerid,pickupid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2218,7 +2092,7 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerPickUpPickup end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerPickUpPickup));
-	HOOK_RETURN<PlayerPickUpPickup>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerPickUpPickup)?P@("S@@_OnPlayerPickUpPickup","ii",playerid,pickupid):ret;
 }
 #if defined _ALS_OnPlayerPickUpPickup
 	#undef OnPlayerPickUpPickup
@@ -2238,7 +2112,7 @@ public OnVehicleMod(playerid, vehicleid, componentid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleMod end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleMod));
-		HOOK_CALL<VehicleMod>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleMod))return P@("S@@_OnVehicleMod","iii",playerid,vehicleid,componentid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2285,7 +2159,7 @@ public OnVehicleMod(playerid, vehicleid, componentid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleMod end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleMod));
-	HOOK_RETURN<VehicleMod>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleMod)?P@("S@@_OnVehicleMod","iii",playerid,vehicleid,componentid):ret;
 }
 #if defined _ALS_OnVehicleMod
 	#undef OnVehicleMod
@@ -2305,7 +2179,7 @@ public OnEnterExitModShop(playerid, enterexit, interiorid)
 	if (start == end)
 	{
 		P:2("Hooks_OnEnterExitModShop end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnEnterExitModShop));
-		HOOK_CALL<EnterExitModShop>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnEnterExitModShop))return P@("S@@_OnEnterExitModShop","iii",playerid,enterexit,interiorid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2352,7 +2226,7 @@ public OnEnterExitModShop(playerid, enterexit, interiorid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnEnterExitModShop end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnEnterExitModShop));
-	HOOK_RETURN<EnterExitModShop>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnEnterExitModShop)?P@("S@@_OnEnterExitModShop","iii",playerid,enterexit,interiorid):ret;
 }
 #if defined _ALS_OnEnterExitModShop
 	#undef OnEnterExitModShop
@@ -2372,7 +2246,7 @@ public OnVehiclePaintjob(playerid, vehicleid, paintjobid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehiclePaintjob end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehiclePaintjob));
-		HOOK_CALL<VehiclePaintjob>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehiclePaintjob))return P@("S@@_OnVehiclePaintjob","iii",playerid,vehicleid,paintjobid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2419,7 +2293,7 @@ public OnVehiclePaintjob(playerid, vehicleid, paintjobid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehiclePaintjob end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehiclePaintjob));
-	HOOK_RETURN<VehiclePaintjob>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehiclePaintjob)?P@("S@@_OnVehiclePaintjob","iii",playerid,vehicleid,paintjobid):ret;
 }
 #if defined _ALS_OnVehiclePaintjob
 	#undef OnVehiclePaintjob
@@ -2439,7 +2313,7 @@ public OnVehicleRespray(playerid, vehicleid, color1, color2)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleRespray end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleRespray));
-		HOOK_CALL<VehicleRespray>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleRespray))return P@("S@@_OnVehicleRespray","iiii",playerid,vehicleid,color1,color2);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2488,7 +2362,7 @@ public OnVehicleRespray(playerid, vehicleid, color1, color2)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleRespray end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleRespray));
-	HOOK_RETURN<VehicleRespray>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleRespray)?P@("S@@_OnVehicleRespray","iiii",playerid,vehicleid,color1,color2):ret;
 }
 #if defined _ALS_OnVehicleRespray
 	#undef OnVehicleRespray
@@ -2508,7 +2382,7 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleDamageStatusUpdate end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleDamageStatusUpdate));
-		HOOK_CALL<VehicleDamageStatusUpdate>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleDamageStatusUpdate))return P@("S@@_OnVehicleDamageStatusUpdate","ii",vehicleid,playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2553,7 +2427,7 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleDamageStatusUpdate end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleDamageStatusUpdate));
-	HOOK_RETURN<VehicleDamageStatusUpdate>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleDamageStatusUpdate)?P@("S@@_OnVehicleDamageStatusUpdate","ii",vehicleid,playerid):ret;
 }
 #if defined _ALS_OnVehicleDamageStatusUpd
 	#undef OnVehicleDamageStatusUpdate
@@ -2573,7 +2447,7 @@ public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat)
 	if (start == end)
 	{
 		P:2("Hooks_OnUnoccupiedVehicleUpdate end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnUnoccupiedVehicleUpdate));
-		HOOK_CALL<UnoccupiedVehicleUpdate>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnUnoccupiedVehicleUpdate))return P@("S@@_OnUnoccupiedVehicleUpdate","iii",vehicleid,playerid,passenger_seat);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2623,7 +2497,7 @@ public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnUnoccupiedVehicleUpdate end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnUnoccupiedVehicleUpdate));
-	HOOK_RETURN<UnoccupiedVehicleUpdate>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnUnoccupiedVehicleUpdate)?P@("S@@_OnUnoccupiedVehicleUpdate","iii",vehicleid,playerid,passenger_seat):ret;
 }
 #if defined _ALS_OnUnoccupiedVehicleUpdate
 	#undef OnUnoccupiedVehicleUpdate
@@ -2643,7 +2517,7 @@ public OnPlayerSelectedMenuRow(playerid, row)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerSelectedMenuRow end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerSelectedMenuRow));
-		HOOK_CALL<PlayerSelectedMenuRow>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerSelectedMenuRow))return P@("S@@_OnPlayerSelectedMenuRow","ii",playerid,row);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2688,7 +2562,7 @@ public OnPlayerSelectedMenuRow(playerid, row)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerSelectedMenuRow end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerSelectedMenuRow));
-	HOOK_RETURN<PlayerSelectedMenuRow>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerSelectedMenuRow)?P@("S@@_OnPlayerSelectedMenuRow","ii",playerid,row):ret;
 }
 #if defined _ALS_OnPlayerSelectedMenuRow
 	#undef OnPlayerSelectedMenuRow
@@ -2708,7 +2582,7 @@ public OnPlayerExitedMenu(playerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerExitedMenu end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerExitedMenu));
-		HOOK_CALL<PlayerExitedMenu>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerExitedMenu))return P@("S@@_OnPlayerExitedMenu","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2751,7 +2625,7 @@ public OnPlayerExitedMenu(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerExitedMenu end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerExitedMenu));
-	HOOK_RETURN<PlayerExitedMenu>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerExitedMenu)?P@("S@@_OnPlayerExitedMenu","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerExitedMenu
 	#undef OnPlayerExitedMenu
@@ -2771,7 +2645,7 @@ public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerInteriorChange end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerInteriorChange));
-		HOOK_CALL<PlayerInteriorChange>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerInteriorChange))return P@("S@@_OnPlayerInteriorChange","iii",playerid,newinteriorid,oldinteriorid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2818,7 +2692,7 @@ public OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerInteriorChange end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerInteriorChange));
-	HOOK_RETURN<PlayerInteriorChange>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerInteriorChange)?P@("S@@_OnPlayerInteriorChange","iii",playerid,newinteriorid,oldinteriorid):ret;
 }
 #if defined _ALS_OnPlayerInteriorChange
 	#undef OnPlayerInteriorChange
@@ -2838,7 +2712,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerKeyStateChange end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerKeyStateChange));
-		HOOK_CALL<PlayerKeyStateChange>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerKeyStateChange))return P@("S@@_OnPlayerKeyStateChange","iii",playerid,newkeys,oldkeys);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2885,7 +2759,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerKeyStateChange end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerKeyStateChange));
-	HOOK_RETURN<PlayerKeyStateChange>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerKeyStateChange)?P@("S@@_OnPlayerKeyStateChange","iii",playerid,newkeys,oldkeys):ret;
 }
 #if defined _ALS_OnPlayerKeyStateChange
 	#undef OnPlayerKeyStateChange
@@ -2905,7 +2779,7 @@ public OnRconLoginAttempt(ip[], password[], success)
 	if (start == end)
 	{
 		P:2("Hooks_OnRconLoginAttempt end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnRconLoginAttempt));
-		HOOK_CALL<RconLoginAttempt>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnRconLoginAttempt))return P@("S@@_OnRconLoginAttempt","ssi",(ip[0])?(ip):NULL,(password[0])?(password):NULL,success);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -2952,7 +2826,7 @@ public OnRconLoginAttempt(ip[], password[], success)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnRconLoginAttempt end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnRconLoginAttempt));
-	HOOK_RETURN<RconLoginAttempt>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnRconLoginAttempt)?P@("S@@_OnRconLoginAttempt","ssi",(ip[0])?(ip):NULL,(password[0])?(password):NULL,success):ret;
 }
 #if defined _ALS_OnRconLoginAttempt
 	#undef OnRconLoginAttempt
@@ -2972,7 +2846,7 @@ public OnPlayerUpdate(playerid)
 	if (start == end)
 	{
 		P:7("Hooks_OnPlayerUpdate end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerUpdate));
-		HOOK_CALL<PlayerUpdate>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerUpdate))return P@("S@@_OnPlayerUpdate","i",playerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3015,7 +2889,7 @@ public OnPlayerUpdate(playerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:7("Hooks_OnPlayerUpdate end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerUpdate));
-	HOOK_RETURN<PlayerUpdate>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerUpdate)?P@("S@@_OnPlayerUpdate","i",playerid):ret;
 }
 #if defined _ALS_OnPlayerUpdate
 	#undef OnPlayerUpdate
@@ -3035,7 +2909,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerStreamIn end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStreamIn));
-		HOOK_CALL<PlayerStreamIn>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStreamIn))return P@("S@@_OnPlayerStreamIn","ii",playerid,forplayerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3080,7 +2954,7 @@ public OnPlayerStreamIn(playerid, forplayerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerStreamIn end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStreamIn));
-	HOOK_RETURN<PlayerStreamIn>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStreamIn)?P@("S@@_OnPlayerStreamIn","ii",playerid,forplayerid):ret;
 }
 #if defined _ALS_OnPlayerStreamIn
 	#undef OnPlayerStreamIn
@@ -3100,7 +2974,7 @@ public OnPlayerStreamOut(playerid, forplayerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerStreamOut end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStreamOut));
-		HOOK_CALL<PlayerStreamOut>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStreamOut))return P@("S@@_OnPlayerStreamOut","ii",playerid,forplayerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3145,7 +3019,7 @@ public OnPlayerStreamOut(playerid, forplayerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerStreamOut end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerStreamOut));
-	HOOK_RETURN<PlayerStreamOut>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerStreamOut)?P@("S@@_OnPlayerStreamOut","ii",playerid,forplayerid):ret;
 }
 #if defined _ALS_OnPlayerStreamOut
 	#undef OnPlayerStreamOut
@@ -3165,7 +3039,7 @@ public OnVehicleStreamIn(vehicleid, forplayerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleStreamIn end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleStreamIn));
-		HOOK_CALL<VehicleStreamIn>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleStreamIn))return P@("S@@_OnVehicleStreamIn","ii",vehicleid,forplayerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3210,7 +3084,7 @@ public OnVehicleStreamIn(vehicleid, forplayerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleStreamIn end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleStreamIn));
-	HOOK_RETURN<VehicleStreamIn>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleStreamIn)?P@("S@@_OnVehicleStreamIn","ii",vehicleid,forplayerid):ret;
 }
 #if defined _ALS_OnVehicleStreamIn
 	#undef OnVehicleStreamIn
@@ -3230,7 +3104,7 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 	if (start == end)
 	{
 		P:2("Hooks_OnVehicleStreamOut end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleStreamOut));
-		HOOK_CALL<VehicleStreamOut>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleStreamOut))return P@("S@@_OnVehicleStreamOut","ii",vehicleid,forplayerid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3275,7 +3149,7 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnVehicleStreamOut end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnVehicleStreamOut));
-	HOOK_RETURN<VehicleStreamOut>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnVehicleStreamOut)?P@("S@@_OnVehicleStreamOut","ii",vehicleid,forplayerid):ret;
 }
 #if defined _ALS_OnVehicleStreamOut
 	#undef OnVehicleStreamOut
@@ -3295,7 +3169,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	if (start == end)
 	{
 		P:2("Hooks_OnDialogResponse end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnDialogResponse));
-		HOOK_CALL<DialogResponse>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnDialogResponse))return P@("S@@_OnDialogResponse","iiiis",playerid,dialogid,response,listitem,(inputtext[0])?(inputtext):NULL);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3346,7 +3220,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnDialogResponse end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnDialogResponse));
-	HOOK_RETURN<DialogResponse>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnDialogResponse)?P@("S@@_OnDialogResponse","iiiis",playerid,dialogid,response,listitem,(inputtext[0])?(inputtext):NULL):ret;
 }
 #if defined _ALS_OnDialogResponse
 	#undef OnDialogResponse
@@ -3366,7 +3240,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerClickPlayer end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerClickPlayer));
-		HOOK_CALL<PlayerClickPlayer>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerClickPlayer))return P@("S@@_OnPlayerClickPlayer","iii",playerid,clickedplayerid,source);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3413,7 +3287,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerClickPlayer end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerClickPlayer));
-	HOOK_RETURN<PlayerClickPlayer>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerClickPlayer)?P@("S@@_OnPlayerClickPlayer","iii",playerid,clickedplayerid,source):ret;
 }
 #if defined _ALS_OnPlayerClickPlayer
 	#undef OnPlayerClickPlayer
@@ -3433,7 +3307,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerTakeDamage end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerTakeDamage));
-		HOOK_CALL<PlayerTakeDamage>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerTakeDamage))return P@("S@@_OnPlayerTakeDamage","iifi",playerid,issuerid,amount,weaponid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3482,7 +3356,7 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerTakeDamage end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerTakeDamage));
-	HOOK_RETURN<PlayerTakeDamage>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerTakeDamage)?P@("S@@_OnPlayerTakeDamage","iifi",playerid,issuerid,amount,weaponid):ret;
 }
 #if defined _ALS_OnPlayerTakeDamage
 	#undef OnPlayerTakeDamage
@@ -3502,7 +3376,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerGiveDamage end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerGiveDamage));
-		HOOK_CALL<PlayerGiveDamage>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerGiveDamage))return P@("S@@_OnPlayerGiveDamage","iifi",playerid,damagedid,amount,weaponid);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3551,7 +3425,7 @@ public OnPlayerGiveDamage(playerid, damagedid, Float:amount, weaponid)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerGiveDamage end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerGiveDamage));
-	HOOK_RETURN<PlayerGiveDamage>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerGiveDamage)?P@("S@@_OnPlayerGiveDamage","iifi",playerid,damagedid,amount,weaponid):ret;
 }
 #if defined _ALS_OnPlayerGiveDamage
 	#undef OnPlayerGiveDamage
@@ -3578,7 +3452,7 @@ stock Hooks_OnPlayerLogin(playerid, uid) <y_hooks_PlayerLogin : y_hooks_PlayerLo
 		P:2("Hooks_OnPlayerLogin end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLogin));
 hooks_do_hooks_call_no_als:
 		return;
-		//HOOK_CALL<PlayerLogin>
+		//if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLogin))return P@("S@@_OnPlayerLogin",#%2,%3);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3623,7 +3497,7 @@ hooks_do_hooks_call_no_als:
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerLogin end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLogin));
-	//HOOK_RETURN<PlayerLogin>
+	//return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLogin)?P@("S@@_OnPlayerLogin",#%2,%3):ret;
 }
 /*#if defined _ALS_OnPlayerLogin
 	#undef OnPlayerLogin
@@ -3648,7 +3522,7 @@ stock Hooks_OnPlayerLogout(playerid, uid) <y_hooks_PlayerLogout : y_hooks_Player
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerLogout end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLogout));
-		//HOOK_CALL<PlayerLogout>
+		//if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLogout))return P@("S@@_OnPlayerLogout",#%2,%3);hooks_do_hooks_call_no_als:return ret;
 hooks_do_hooks_call_no_als:
 		return;
 	}
@@ -3695,7 +3569,7 @@ hooks_do_hooks_call_no_als:
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerLogout end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerLogout));
-	//HOOK_RETURN<PlayerLogout>
+	//return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerLogout)?P@("S@@_OnPlayerLogout",#%2,%3):ret;
 }
 /*#if defined _ALS_OnPlayerLogout
 	#undef OnPlayerLogout
@@ -3720,7 +3594,7 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	if (start == end)
 	{
 		P:2("Hooks_OnPlayerClickMap end 1: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerClickMap));
-		HOOK_CALL<PlayerClickMap>
+		if(Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerClickMap))return P@("S@@_OnPlayerClickMap","ifff",playerid,fX,fY,fZ);hooks_do_hooks_call_no_als:return ret;
 	}
 	new
 		idx,
@@ -3769,7 +3643,7 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	}
 	// Do ALS just in case (YSI no longer uses this though now).
 	P:2("Hooks_OnPlayerClickMap end 2: %d %d", ret, _:Bit_GetBit(Bit:gs_ALS, _:ALS_OnPlayerClickMap));
-	HOOK_RETURN<PlayerClickMap>
+	return Bit_GetBit(Bit:gs_ALS,_:ALS_OnPlayerClickMap)?P@("S@@_OnPlayerClickMap","ifff",playerid,fX,fY,fZ):ret;
 }
 #if defined _ALS_OnPlayerClickMap
 	#undef OnPlayerClickMap

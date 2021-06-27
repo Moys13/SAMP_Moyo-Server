@@ -50,11 +50,6 @@ Legal:
 Version:
 	2.0
 Changelog:
-	14/04/12:
-		Added crash fix from Slice, now returning correct values.
-		Fixed ALS detection of mode callbacks.
-	25/02/12:
-		Extracted most of the code to a separate file.
 	17/03/11:
 		Second complete re-write using another new technique.  Now VERY fast!
 		Updated OnPlayerUpdate code using Google63's SCTRL jump code.
@@ -62,11 +57,26 @@ Changelog:
 		First version
 \*----------------------------------------------------------------------------*/
 
-#include "y_version"
-#include <a_samp>
-#include "..\y_debug"
+#if !defined _inc_y_hooks
+	//#error Did you do <YSI/y_hooks> instead of the required <YSI\y_hooks>?
+#endif
+#undef _inc_y_hooks
 
-#include "..\y_amx"
+// Multiple includes!
+#include "internal\y_unique"
+
+#if defined _INC_y_hooks
+	#endinput
+#endif
+// Everything except including "y_unique" is done once only.
+#define _INC_y_hooks
+
+#include "internal\y_version"
+#include <a_samp>
+#include "y_debug"
+
+#include "y_amx"
+#undef P
 
 #define ALS_PREFIX S@@
 
@@ -81,7 +91,7 @@ Changelog:
 
 #define Hook:%0On%1(%2) UNIQUE_FUNCTION<@yH_%1...%0>(%2);UNIQUE_FUNCTION<@yH_%1...%0>(%2)
 
-#include "..\y_als"
+#include "y_als"
 
 /*#if !defined OnPlayerLogin
 #endif
@@ -123,23 +133,7 @@ static stock
 	YSI_g_sCallbackData[ALS][E_FUNC_HOOK_DATA],
 	YSI_g_sLastFoundIndex;
 
-static Hooks_Blank_Return1N()
-{
-	// Bug fix from Slice.
-	return -1;
-}
-
-static Hooks_Blank_Return0()
-{
-	return 0;
-}
-
-static Hooks_Blank_Return1()
-{
-	return 1;
-}
-
-Hooks_RedirectPublic(from[], to[], final = 1)
+Hooks_RedirectPublic(from[], to[])
 {
 	P:4("Hooks_RedirectPublic called: \"%s\", \"%s\"", from, to);
 	new
@@ -163,26 +157,7 @@ Hooks_RedirectPublic(from[], to[], final = 1)
 			// it, however, the callback will no longer exist (unless PAWN
 			// buffers callbacks in an efficient structure, which is possible).
 			// UPDATE: Clearly not.
-			//AMX_Write(addr, -1);
-			switch (final)
-			{
-				case 0:
-				{
-					#emit CONST.pri   Hooks_Blank_Return0
-					#emit STOR.S.pri  pointer
-				}
-				case -1:
-				{
-					#emit CONST.pri   Hooks_Blank_Return1N
-					#emit STOR.S.pri  pointer
-				}
-				default:
-				{
-					#emit CONST.pri   Hooks_Blank_Return1
-					#emit STOR.S.pri  pointer
-				}
-			}
-			AMX_Write(addr, pointer);
+			AMX_Write(addr, -1);
 		}
 		return ret;
 	}
@@ -210,7 +185,7 @@ static Hooks_AddOne(idx, &toaddidx, struc[E_FUNC_HOOK_DATA])
 	}
 }
 
-static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA]) //, &count)
+static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA], &count)
 {
 	P:4("Hooks_FindAll called: %s %d", name, toaddidx);
 	new
@@ -229,59 +204,29 @@ static Hooks_FindAll(name[], &toaddidx, struc[E_FUNC_HOOK_DATA]) //, &count)
 	{
 		P:W("y_hooks buffer exhausted, resorting to slow method.");
 	}
+	count = struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
 	// Don't store the end, if the count goes off the end of the addresses array
 	// then we need to just start reading from the AMX directly.
-	P:4("Hooks_FindAll end: %s %d %d", name, toaddidx, struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START]);
-	//count = struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
-	return struc[E_FUNC_HOOK_DATA_END] - struc[E_FUNC_HOOK_DATA_START];
+	P:4("Hooks_FindAll end: %s %d %d", name, toaddidx, count);
 }
 
-#define HOOKS_DO_ONE_CALLBACK<%0> ALS_DETECT<%0>if(!Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0]))Hooks_RedirectPublic(#On%0,#S@@_On%0,ALS_R_%0);
-#define HOOKS_DO_ONE_SPECIAL<%0> if(Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0]))state y_hooks_%0 : y_hooks_%0_some;else state y_hooks_%0 : y_hooks_%0_none;
+#define HOOKS_DO_ONE_CALLBACK<%0> ALS_DETECT<%0>Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(!count)Hooks_RedirectPublic(#On%0,#S@@_On%0);
+#define HOOKS_DO_ONE_SPECIAL<%0> Hooks_FindAll(#%0,cidx,YSI_g_sCallbackData[ALS_On%0],count);if(count)state y_hooks_%0 : y_hooks_%0_some;else state y_hooks_%0 : y_hooks_%0_none;
 
 static Hooks_OnScriptInit()
 {
 	P:2("Hooks_OnScriptInit called");
 	new
-		cidx;
+		cidx,
+		count;
 	//HOOKS_DO_ONE_CALLBACK<AnyScriptInit>
 	//HOOKS_DO_ONE_CALLBACK<AnyScriptExit>
-	//HOOKS_DO_ONE_CALLBACK<ScriptInit>
-	//HOOKS_DO_ONE_CALLBACK<ScriptExit>
-	//HOOKS_DO_ONE_CALLBACK<GameModeInit>
-	//HOOKS_DO_ONE_CALLBACK<GameModeExit>
-	//HOOKS_DO_ONE_CALLBACK<FilterScriptInit>
-	//HOOKS_DO_ONE_CALLBACK<FilterScriptExit>
-	ALS_DETECT<ScriptInit>
-	ALS_DETECT<ScriptExit>
-	ALS_DETECT<GameModeInit>
-	ALS_DETECT<GameModeExit>
-	ALS_DETECT<FilterScriptInit>
-	ALS_DETECT<FilterScriptExit>
-	Hooks_FindAll(#ScriptInit, cidx, YSI_g_sCallbackData[ALS_OnScriptInit]);
-	if (YSI_FILTERSCRIPT)
-	{
-		if (!(Hooks_FindAll(#FilterScriptExit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptExit]) + Hooks_FindAll(#ScriptExit, cidx, YSI_g_sCallbackData[ALS_OnScriptExit])))
-		{
-			Hooks_RedirectPublic(#OnFilterScriptExit, #S@@_OnFilterScriptExit);
-		}
-		//HOOKS_DO_ONE_CALLBACK<FilterScriptInit>
-		Hooks_FindAll(#FilterScriptInit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptInit]);
-		HOOKS_DO_ONE_CALLBACK<GameModeInit>
-		HOOKS_DO_ONE_CALLBACK<GameModeExit>
-		//Hooks_FindAll(#FilterScriptExit, cidx, YSI_g_sCallbackData[ALS_OnFilterScriptExit], count);
-	}
-	else
-	{
-		if (!(Hooks_FindAll(#GameModeExit, cidx, YSI_g_sCallbackData[ALS_OnGameModeExit]) + Hooks_FindAll(#ScriptExit, cidx, YSI_g_sCallbackData[ALS_OnScriptExit])))
-		{
-			Hooks_RedirectPublic(#OnGameModeExit, #S@@_OnGameModeExit);
-		}
-		Hooks_FindAll(#GameModeInit, cidx, YSI_g_sCallbackData[ALS_OnGameModeInit]);
-		//Hooks_RedirectPublic(#OnGameModeInit, #S@@_OnGameModeInit);
-		Hooks_RedirectPublic(#OnFilterScriptInit, #S@@_OnFilterScriptInit);
-		Hooks_RedirectPublic(#OnFilterScriptExit, #S@@_OnFilterScriptExit);
-	}
+	HOOKS_DO_ONE_CALLBACK<ScriptInit>
+	HOOKS_DO_ONE_CALLBACK<ScriptExit>
+	HOOKS_DO_ONE_CALLBACK<GameModeInit>
+	HOOKS_DO_ONE_CALLBACK<GameModeExit>
+	HOOKS_DO_ONE_CALLBACK<FilterScriptInit>
+	HOOKS_DO_ONE_CALLBACK<FilterScriptExit>
 	HOOKS_DO_ONE_CALLBACK<PlayerConnect>
 	HOOKS_DO_ONE_CALLBACK<PlayerDisconnect>
 	HOOKS_DO_ONE_CALLBACK<PlayerSpawn>
@@ -410,7 +355,7 @@ hooks_do_hooks_call_no_als:
 
 static Hooks_OnScriptExit()
 {
-	P:2("Hooks_OnScriptExit called");
+	P:1("Hooks_OnScriptExit called");
 	new
 		end   = YSI_g_sCallbackData[ALS_OnScriptExit][E_FUNC_HOOK_DATA_END],
 		start = YSI_g_sCallbackData[ALS_OnScriptExit][E_FUNC_HOOK_DATA_START],
@@ -545,7 +490,7 @@ ALS_FORWARD<GameModeInit>
 
 public OnGameModeExit()
 {
-	P:2("Hooks_OnGameModeExit called");
+	P:2("Hooks_OnGameModeExit called: %d", YSI_FILTERSCRIPT);
 	if (!YSI_FILTERSCRIPT)
 	{
 		Hooks_OnScriptExit();

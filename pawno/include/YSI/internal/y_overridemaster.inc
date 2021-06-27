@@ -1,4 +1,4 @@
-/*----------------------------------------------------------------------------*\
+/*----------------------------------------------------------------------------*-
 					===============================
 					Y Sever Includes - Master Auto
 					===============================
@@ -18,17 +18,17 @@ Legal:
 	for the specific language governing rights and limitations under the
 	License.
 	
-	The Original Code is the YSI master include.
+	The Original Code is the SA:MP script information include.
 	
 	The Initial Developer of the Original Code is Alex "Y_Less" Cole.
-	Portions created by the Initial Developer are Copyright (C) 2011
+	Portions created by the Initial Developer are Copyright (C) 2008
 	the Initial Developer. All Rights Reserved.
 	
 	Contributors:
-		ZeeX, koolk, JoeBullet/Google63, g_aSlice/Slice
+		ZeeX, koolk
 	
 	Thanks:
-		JoeBullet/Google63 - Handy arbitrary ASM jump code using SCTRL.
+		Peter, Cam - Support.
 		ZeeX - Very productive conversations.
 		koolk - IsPlayerinAreaEx code.
 		TheAlpha - Danish translation.
@@ -43,10 +43,9 @@ Legal:
 		Matite - Pestering me to release it and using it.
 	
 	Very special thanks to:
-		Thiadmer - PAWN, whose limits continue to amaze me!
+		Thiadmer - PAWN.
 		Kye/Kalcor - SA:MP.
 		SA:MP Team past, present and future - SA:MP.
-	
 Version:
 	0.1
 Changelog:
@@ -90,7 +89,7 @@ Operators:
 	-
 Natives:
 	-
-\*----------------------------------------------------------------------------*/
+-*----------------------------------------------------------------------------*/
 
 #undef _inc_y_overridemaster
 

@@ -3,12 +3,16 @@
 	"repo": "SAMP-foreach",
 	"dependencies": [
 		"sampctl/samp-stdlib",
-		"karimcambridge/SAMP-foreach"
+		"karimcambridge/SAMP-foreach",
+		"pawn-lang/YSI-Includes"
 	],
 	"runtime": {
 		"version": "0.3.7",
 		"mode": "server",
 		"rcon_password": "moyo",
-		"port": 7777
+		"port": 7777,
+		"hostname": "SA-MP Server",
+		"maxplayers": 50,
+		"language": ""
 	}
 }

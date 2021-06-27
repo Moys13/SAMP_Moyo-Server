@@ -1,4 +1,4 @@
-/*----------------------------------------------------------------------------*\
+/*----------------------------------------------------------------------------*-
 					===============================
 					Y Sever Includes - Master Auto
 					===============================
@@ -18,17 +18,17 @@ Legal:
 	for the specific language governing rights and limitations under the
 	License.
 	
-	The Original Code is the YSI master include.
+	The Original Code is the SA:MP script information include.
 	
 	The Initial Developer of the Original Code is Alex "Y_Less" Cole.
-	Portions created by the Initial Developer are Copyright (C) 2011
+	Portions created by the Initial Developer are Copyright (C) 2008
 	the Initial Developer. All Rights Reserved.
 	
 	Contributors:
-		ZeeX, koolk, JoeBullet/Google63, g_aSlice/Slice
+		ZeeX, koolk
 	
 	Thanks:
-		JoeBullet/Google63 - Handy arbitrary ASM jump code using SCTRL.
+		Peter, Cam - Support.
 		ZeeX - Very productive conversations.
 		koolk - IsPlayerinAreaEx code.
 		TheAlpha - Danish translation.
@@ -43,10 +43,9 @@ Legal:
 		Matite - Pestering me to release it and using it.
 	
 	Very special thanks to:
-		Thiadmer - PAWN, whose limits continue to amaze me!
+		Thiadmer - PAWN.
 		Kye/Kalcor - SA:MP.
 		SA:MP Team past, present and future - SA:MP.
-	
 Version:
 	0.1
 Changelog:
@@ -90,7 +89,7 @@ Operators:
 	-
 Natives:
 	-
-\*----------------------------------------------------------------------------*/
+-*----------------------------------------------------------------------------*/
 
 // =============================================================================
 // =============================================================================
@@ -103,7 +102,7 @@ Natives:
 
 #undef _inc_y_automasters
 
-//#define _YSIM_USED_AUTO
+#define _YSIM_USED_AUTO
 
 // Commands are set as master number 25
 #if defined _inc_y_commands
@@ -128,75 +127,36 @@ Natives:
 #if defined _inc_y_classes
 	#if !defined _YCM_w@ // w is letter 22
 		#define MASTER                  22
-		//#if defined _inc_y_classes_do
-		//	// Make sure only the implementation file calls y_master.
-		//	#define YSIM_DISABLE_RECALL
-		//#endif
 		#endinput
 	#endif
 #endif
 
-// Languages are set as master number 21.  This is the first library I've done
-// since largely finishing the y_master system (I hope anyway) and it is now, I
-// have to say, VERY smooth adding in a new YSI mastered library!  Actually, I
-// need to remember to add the "revert" code, but it's only hard with groups.
-#if defined _inc_y_languages
-	#if !defined _YCM_v@ // v is letter 21
+// Dialogs are set as master number 23
+/*#if defined _inc_y_dialog
+	#if !defined _YCM_x@ // x is letter 23
+		#define MASTER                  23
+		#endinput
+	#endif
+#endif*/
+
+// Languages are set as master number 27
+/*#if defined _inc_y_languages
+	#if !defined _YCM_w@ // B is letter 27
+		#define MASTER                  22
+		#endinput
+	#endif
+#endif
+
+// Players are set as master number 28
+#if defined _inc_y_player
+	#if !defined _YCM_v@ // C is letter 28
 		#define MASTER                  21
 		#endinput
 	#endif
 #endif
 
-// Players are set as master number 20
-#if defined _inc_y_users
-	#if !defined _YCM_u@ // u is letter 20
-		#define MASTER                  20
-		#endinput
-	#endif
-#endif
-
-// Dialogs are set as master number 19
-#if defined _inc_y_dialog
-	#if !defined _YCM_t@ // t is letter 19
-		#define MASTER                  19
-		#endinput
-	#endif
-#endif
-
-// Areas are set as master number 18
-#if defined _inc_y_areas
-	#if !defined _YCM_s@ // s is letter 18
-		#define MASTER                  18
-		#endinput
-	#endif
-#endif
-
-// PHP is set as master number 17
-#if defined _inc_y_php
-	#if !defined _YCM_r@ // r is letter 17
-		#define MASTER                  17
-		#endinput
-	#endif
-#endif
-
-// Incognito's streamer is set as master number 16
-#if defined _inc_streamer
-	#if !defined _YCM_q@ // q is letter 16
-		#define MASTER                  16
-		#endinput
-	#endif
-#endif
-
-// Incognito's streamer is set as master number 16
-#if defined _inc_y_phone
-	#if !defined _YCM_p@ // q is letter 16
-		#define MASTER                  15
-		#endinput
-	#endif
-#endif
-
 // The help system is set as master number 29
-/*#if defined _inc_y_help
+#if defined _inc_y_help
 	#if !defined _YCM_u@ // D is letter 29
 		#define MASTER                  20
 		#endinput
@@ -218,7 +178,7 @@ Natives:
 	#endif
 #endif
 
-//#undef _YSIM_USED_AUTO
+#undef _YSIM_USED_AUTO
 
 // We can't have an auto-incrementing master number as there's no way to
 // guarantee that two scripts using the same library will have the same master

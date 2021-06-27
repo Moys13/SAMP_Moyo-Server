@@ -1,12 +1,13 @@
 #include <a_samp>
 #include <discord-connector>
 #include <sscanf2>
+#include <zcmd>
 
 new DCC_Channel:g_Discord_Chat;
 #define COL_YELLOW	(0xd9ff00FF)
 #define COL_ORANGE	(0xffaa00FF)
 #define COL_PINK 	(0xff00aeFF)
-
+#define COL_RED		(0xff0000FF)
 
 
 new chatdc [MAX_PLAYERS];
@@ -78,17 +79,29 @@ public OnPlayerDisconnect(playerid, reason)
 }
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-	if (strcmp("/livedc", cmdtext, true, 10) == 0)
+	if (strcmp("/mycommand", cmdtext, true, 10) == 0)
 	{
-		chatdc[playerid] = 1;
-        SendClientMessage(playerid, COL_YELLOW, "Anda telah mengaktifkan chat discord!");
-		return 1;
-	}
-    if (strcmp("/mutedc", cmdtext, true, 10) == 0)
-	{
-		chatdc[playerid] = 0;
-        SendClientMessage(playerid, COL_YELLOW, "Anda telah membisukan obrolan discord!");
+		// Do something here
 		return 1;
 	}
 	return 0;
+}
+
+CMD:discord(playerid, params[])
+{
+    if(!strcmp(params, "live", true))
+    {
+        chatdc[playerid] = 1;
+        SendClientMessage(playerid, COL_YELLOW, "Anda telah mengaktifkan chat discord!");
+    }
+    if(!strcmp(params, "mute", true))
+    {
+        chatdc[playerid] = 0;
+        SendClientMessage(playerid, COL_YELLOW, "Anda telah membisukan obrolan discord!");
+    }
+    else
+    {
+        SendClientMessage(playerid, COL_RED, "ERROR: chose Live or Mute!");
+    }
+    return 1;
 }

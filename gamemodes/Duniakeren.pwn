@@ -24,7 +24,6 @@ new vgod[MAX_PLAYERS];
 new jumpmode[MAX_PLAYERS];
 
 new sniperworld[MAX_PLAYERS];
-new sniperInvite[MAX_PLAYERS];
 
 //=======Pickup=======
 new pintutinju;
@@ -49,6 +48,8 @@ new pintukeluarverdant;
 #define SCMex SendClientMessageEx
 #define tele (13)
 #define fight (16)
+#define DIALOG_DROP (47)
+#define BBPlay (22)
 #define DIALOG_LEAVEDM (54)
 
 #define HOLDING(%0) \
@@ -145,6 +146,11 @@ enum p_Account_Data
 	pAdmin,
 }
 
+
+new dropCampfire[MAX_PLAYERS][1];
+new dropBoombox[MAX_PLAYERS][1];
+new campFire[MAX_PLAYERS];
+new boomBox[MAX_PLAYERS];
 
 //======Register & loging Stuff======
 
@@ -249,8 +255,6 @@ public OnPlayerRequestClass(playerid, classid)
 
 public OnPlayerConnect(playerid)
 {
-	sniperworld[playerid] = 0;
-	sniperInvite[playerid] = -1;
 	
 	new string[120], pName[MAX_PLAYER_NAME];
     GetPlayerName(playerid,pName,MAX_PLAYER_NAME);
@@ -303,6 +307,8 @@ RemoveBuildingForPlayer(playerid, 1411, 875.4141, -1343.6563, 14.0859, 0.25);
 
 	SetPlayerInterior(playerid, 0);
 	sniperworld[playerid] = false;
+	campFire[playerid] = 0;
+	boomBox[playerid] = 0;
 	for(new w = 0; w < 3; w++)
 	{
 	TextDrawShowForPlayer(playerid, PublicTD[w]);
@@ -350,10 +356,9 @@ public OnPlayerSpawn(playerid)
 
 public OnPlayerDeath(playerid, killerid, reason)
 {
-	new score;
 	SendDeathMessage(killerid, playerid, reason);
 	GivePlayerMoney(killerid, 500);
-	SetPlayerScore(killerid, score++);
+	SetPlayerScore(killerid, 1);
 	return 1;
 }
 
@@ -515,7 +520,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	if (PRESSED(KEY_LOOK_BEHIND))
     {
 		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
-			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, 200);
+			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, false);
 		return 1;
 	}
 	if (PRESSED(KEY_YES))
@@ -645,7 +650,84 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			}
 		}
 	}
-	
+
+	if(response)
+	{
+		switch(dialogid)
+		{
+			case DIALOG_DROP:
+			{
+				switch(listitem)
+				{
+					case 0:
+					{
+						if(campFire[playerid] == 0)
+						{
+							new Float:CFPos[4]; //CFPos adalah camp fire position.
+							GetPlayerPos(playerid, CFPos[0], CFPos[1], CFPos[2]);
+							GetPlayerFacingAngle(playerid, CFPos[3]);
+							dropCampfire[playerid][0] = CreateDynamicObject(19632, CFPos[0], CFPos[1], CFPos[2]-1, 0.0, 0.0, 0.0, GetPlayerVirtualWorld(playerid),  GetPlayerInterior(playerid));
+							ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0, 1);
+							campFire[playerid] = 1;
+							return 1;
+						}
+						if(campFire[playerid] == 1)
+						{
+							SCM(playerid, COL_ORANGE, "Anda berhasil menghapus Campfire");
+							DestroyDynamicObject(dropCampfire[playerid][0]);
+							campFire[playerid] = 0;
+						}
+						return 1;
+					}
+					case 1:
+					{
+						if(boomBox[playerid] == 0)
+						{
+							ShowPlayerDialog(playerid, BBPlay, DIALOG_STYLE_INPUT, "Link Music kalian.", "Masukan Link disini!", "PLAY", "BATAL");
+							return 1;
+						}
+						if(boomBox[playerid] == 1)
+						{
+							ShowPlayerDialog(playerid, BBPlay, DIALOG_STYLE_MSGBOX, "Menghapus Boombox", "Boombox akan di hapus secara otomatis", "OKE", "");
+						}
+						return 1;
+					}
+				}
+			}
+		}
+	}
+
+	if(dialogid == BBPlay)//DIALOG LEAVE
+	{
+		if(response)
+		{
+			if(boomBox[playerid] == 0)
+			{
+				new Float:BBPos[4]; //BBPos adalah BoomBox Position.
+				GetPlayerPos(playerid, BBPos[0], BBPos[1], BBPos[2]);
+				GetPlayerFacingAngle(playerid, BBPos[3]);
+				dropBoombox[playerid][0] = CreateDynamicObject(2226, BBPos[0], BBPos[1], BBPos[2]-1, 0.0, 0.0, 0.0, GetPlayerVirtualWorld(playerid),  GetPlayerInterior(playerid));
+				foreach(Player, i)
+				{
+				PlayAudioStreamForPlayer(i, inputtext, BBPos[0], BBPos[1], BBPos[2], 7.0, 1);
+				}
+				ApplyAnimation(playerid, "BOMBER", "BOM_Plant", 4.0, 0, 0, 0, 0, 0, 1);
+				boomBox[playerid] = 1;
+				return 1;
+			}
+			if(boomBox[playerid] == 1)
+			{
+				foreach(Player, i)
+				{
+					StopAudioStreamForPlayer(i);
+					DestroyDynamicObject(dropBoombox[playerid][0]);
+				}
+				boomBox[playerid] = 0;
+				return 1;
+			}
+			return 1;
+		}
+	}
 	if(response)//gaya tarung
 	{
 		switch (dialogid)
@@ -1864,11 +1946,11 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	SetVehiclePos(GetPlayerVehicleID(playerid), fX, fY, fZ);
 	PutPlayerInVehicle(playerid, GetPlayerVehicleID(playerid), 0);
 	LinkVehicleToInterior(GetPlayerVehicleID(playerid), GetPlayerInterior(playerid));
-	SetVehicleVirtualWorld(GetPlayerVehicleID(playerid, GetPlayerVirtualWorld(playerid)));
 	SCM(playerid, COL_GREEN, "[SERVER]: teleportasi {61c5dd}berhasil");
 	return 1;
 }
 
+forward ReturnDate();
 public ReturnDate()
 {
 	new	
@@ -1954,18 +2036,19 @@ CMD:cmdlist(playerid, params[])
 	if(AccountInfo[playerid][pAdmin] >= 2)
 	{
 		SCM(playerid, COL_ORANGE, "CMD Admin level 2:");
-		SCM(playerid, COL_YELLOW, "/kill /get /dveh /setworld /freeze /unfreeze /health /money /playmusic");
+		SCM(playerid, COL_YELLOW, "/kill /get /dveh /setworld /freeze /unfreeze");
 	}
 	if(AccountInfo[playerid][pAdmin] >= 1)
 	{
 		SCM(playerid, COL_ORANGE, "CMD Admin level 1:");
-		SCM(playerid, COL_YELLOW, "/health /money /playmusic");
+		SCM(playerid, COL_YELLOW, "/health /money ");
 	}
 	SCM(playerid, COL_ORANGE, "CMD Player:");
 	SCM(playerid, COL_YELLOW, "/jetpack /skin /weap /spawn /god /teleport /v /spawnveh /para /goto");
 	SCM(playerid, COL_YELLOW, "/sfight /heal /sjump /vgod /boom /spin /snip /world /stopmusic");
-	SCM(playerid, COL_ORANGE, "CMD Player:");
-	SCM(playerid, COL_YELLOW, "/livedc /mutedc");
+	
+	SCM(playerid, COL_ORANGE, "CMD Discord:");
+	SCM(playerid, COL_YELLOW, "/discord");
 	return 1;
 }
 
@@ -2404,16 +2487,7 @@ CMD:snip(playerid, params[])
 	{
 		if(!strcmp(params,"join",true))
 		{
-			if(sniperInvite[playerid] == -1)
-				return SCM(playerid, COL_RED, "ERROR: Tidak ada player di dalam deathmatch!");
-			sniperworld[playerid] = sniperInvite[playerid];
-			sniperInvite[playerid] = -1;
-			
-		}
-		else
-		{
-			new targetid;
-			sniperInvite[targetid] = sniperworld[playerid];
+			sniperworld[playerid] = 1;
 			setspawnsniper(playerid);
 			SCM(playerid, COL_YELLOW, "TEKAN {ffaa00}'H' {d9ff00}UNTUK KELUAR DARI DEATH MATCH ");
 			SetPlayerHealth(playerid, 100);
@@ -2422,7 +2496,6 @@ CMD:snip(playerid, params[])
 	}
 	SetPVarInt(playerid, "CMD_muted", 1);
 	sniperworld[playerid] = true;
-	sniperInvite[playerid] = 1;
 	setspawnsniper(playerid);
 	SCM(playerid, COL_YELLOW, "TEKAN {ffaa00}'H' {d9ff00}UNTUK KELUAR DARI DEATH MATCH ");
 	SetPlayerHealth(playerid, 100);
@@ -2438,31 +2511,6 @@ CMD:world(playerid, params[])
 	return 1;
 }
 
-CMD:playmusic(playerid, params[])
-{
-   if(AccountInfo[playerid][pAdmin] < 1)
-	return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
-		new url[128];
-		if(!sscanf(params, "s[128]", url))
-	    {
-			foreach (Player, i)
-			{
-				if (IsPlayerConnected(i))
-				{
-                    PlayAudioStreamForPlayer(i, url);
-				}
-			}
-		}
-	return 1;
-}
-
-CMD:stopmusic(playerid, params[])
-{
-	StopAudioStreamForPlayer(playerid);
-	SCM(playerid, COL_ORANGE, "Anda menghentikan music");
-	return 1;
-}
-
 CMD:rename(playerid, params[])
 {
 	new name[128];
@@ -2474,6 +2522,37 @@ CMD:rename(playerid, params[])
 	return 1;
 }
 
+CMD:spec(playerid, params[])
+{
+	new target;
+	if(!strcmp(params,"off",true))
+		{
+			TogglePlayerSpectating(playerid, 0);
+			return 1;
+		}
+	if(sscanf(params, "i", target))
+		return SCM(playerid, COL_RED, "[SERVER]: /spec {61c5dd}[playerid]");
+	TogglePlayerSpectating(playerid, 1);
+	PlayerSpectatePlayer(playerid, target);
+	SetCameraBehindPlayer(target);
+	return 1;
+}
+
+CMD:drop(playerid, params[])
+{
+    ShowPlayerDialog(playerid, DIALOG_DROP, DIALOG_STYLE_LIST, "Pilih barang mana yang mau di drop", "Campfire\nBoombox",  "DROP", "BATAL");
+    return 1;
+}
+
+CMD:tes(playerid, params[])
+{
+	if (IsPlayerInRangeOfPoint(playerid, 7.0, 2695.6880, -1704.6300, 11.8438))
+    {
+        SendClientMessage(playerid,0xFFFFFFFF,"You are near the stadium entrance!");
+    }
+	SendClientMessage(playerid,0xFFFFFFFF,"You are not");
+	return 1;
+}
 // CMD:tp(playerid,params[])
 // {
 // 		new Float:posx,Float:posy,Float:posz, inte;
@@ -2701,18 +2780,18 @@ function:SetPlayerCamera(playerid)
 	{
 		case 0:
 		{
-			SetPlayerCameraPos(playerid, -1689.2844, 607.0133, 81.9798);
-			SetPlayerCameraLookAt(playerid, -1688.5098, 607.6512, 81.9847);
+			SetPlayerCameraPos(playerid, 1217.8131, -1377.3015, 30.2422);
+			SetPlayerCameraLookAt(playerid, 1217.0529, -1376.6432, 30.0271);
 		}
 		case 1:
 		{
-			SetPlayerCameraPos(playerid, 791.2724, -1219.6310, 29.7567);
-			SetPlayerCameraLookAt(playerid, 790.5845, -1220.3588, 29.4817);
+			SetPlayerCameraPos(playerid, 980.3136, -1664.1619, 71.7542);
+			SetPlayerCameraLookAt(playerid, 979.7733, -1665.0083, 70.9241);
 		}
 		case 2:
 		{
-			SetPlayerCameraPos(playerid, 1446.6062, -1455.5439, 12.5514);
-			SetPlayerCameraLookAt(playerid, 1447.2324, -1454.7634, 13.7764);
+			SetPlayerCameraPos(playerid, 1244.9244, -2036.5120, 71.9354);
+			SetPlayerCameraLookAt(playerid, 1243.9196, -2036.5469, 71.9701);
 		}
 		
 	}
