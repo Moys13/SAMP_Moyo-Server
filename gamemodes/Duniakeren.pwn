@@ -173,6 +173,9 @@ main()
 
 public OnGameModeInit()
 {
+	AddCharModel(305, 20001, "lvpdpc2.dff", "lvpdpc2.txd");
+	AddCharModel(305, 20002, "lapdpd2.dff", "lapdpd2.txd");
+
 	DisableInteriorEnterExits();
 	ourconnection = mysql_connect(SQL_HOSTNAME, SQL_USERNAME, SQL_DATABASE, SQL_PASSWORD);
 	
@@ -229,6 +232,8 @@ public OnGameModeInit()
 	pintutinju = CreatePickup(19133, 1, 871.8083,-1293.5560,3001.0859, -1);
 	pintuverdant = CreatePickup(1273, 1, 1122.7091,-2037.0099,69.8942, -1);
 	pintukeluarverdant = CreatePickup(1273, 1, 1260.6509,-785.4543,1091.9063, -1);
+	
+	AddCharModel(140, 22222, "Tamaki_Noct.dff", "Tamaki_Noct.txd");
 	return 1;
 }
 
@@ -520,7 +525,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	if (PRESSED(KEY_LOOK_BEHIND))
     {
 		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
-			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, false);
+			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, true);
 		return 1;
 	}
 	if (PRESSED(KEY_YES))
@@ -2546,11 +2551,7 @@ CMD:drop(playerid, params[])
 
 CMD:tes(playerid, params[])
 {
-	if (IsPlayerInRangeOfPoint(playerid, 7.0, 2695.6880, -1704.6300, 11.8438))
-    {
-        SendClientMessage(playerid,0xFFFFFFFF,"You are near the stadium entrance!");
-    }
-	SendClientMessage(playerid,0xFFFFFFFF,"You are not");
+	SetPlayerSkin(playerid, 20003);
 	return 1;
 }
 // CMD:tp(playerid,params[])
