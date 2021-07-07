@@ -2,7 +2,7 @@
 
 new speedactive[MAX_PLAYERS];
 new speedinfo[MAX_PLAYERS];
-new PlayerText:speed[MAX_PLAYERS][5];
+new PlayerText:speed[MAX_PLAYERS][4];
 
 
 new VehicleNames[][] =
@@ -232,58 +232,49 @@ public OnPlayerConnect(playerid)
 {
 	/////////////////////////////////////////////////////////////////////////////////////////
 //speedometer
-	speed[playerid][0] = CreatePlayerTextDraw(playerid, 559.868041, 250.666519, "box");
-	PlayerTextDrawLetterSize(playerid, speed[playerid][0], 0.000000, 3.206444);
-	PlayerTextDrawTextSize(playerid, speed[playerid][0], 637.000000, 0.000000);
+	speed[playerid][0] = CreatePlayerTextDraw(playerid, 528.982299, 183.216751, "box");
+	PlayerTextDrawLetterSize(playerid, speed[playerid][0], 0.000000, 6.720351);
+	PlayerTextDrawTextSize(playerid, speed[playerid][0], 640.000000, 0.000000);
 	PlayerTextDrawAlignment(playerid, speed[playerid][0], 1);
-	PlayerTextDrawColor(playerid, speed[playerid][0], 65535);
+	PlayerTextDrawColor(playerid, speed[playerid][0], -1);
 	PlayerTextDrawUseBox(playerid, speed[playerid][0], 1);
 	PlayerTextDrawBoxColor(playerid, speed[playerid][0], 255);
 	PlayerTextDrawSetShadow(playerid, speed[playerid][0], 0);
 	PlayerTextDrawBackgroundColor(playerid, speed[playerid][0], 255);
-	PlayerTextDrawFont(playerid, speed[playerid][0], 1);
+	PlayerTextDrawFont(playerid, speed[playerid][0], 0);
 	PlayerTextDrawSetProportional(playerid, speed[playerid][0], 1);
 
-	speed[playerid][1] = CreatePlayerTextDraw(playerid, 559.400207, 248.333404, "Speed_:_100Km");
-	PlayerTextDrawLetterSize(playerid, speed[playerid][1], 0.270687, 1.448331);
-	PlayerTextDrawTextSize(playerid, speed[playerid][1], -33.000000, 0.000000);
+	speed[playerid][1] = CreatePlayerTextDraw(playerid, 562.679992, 164.916641, "Turismo");
+	PlayerTextDrawLetterSize(playerid, speed[playerid][1], 0.446851, 2.014167);
+	PlayerTextDrawTextSize(playerid, speed[playerid][1], -3.000000, 0.000000);
 	PlayerTextDrawAlignment(playerid, speed[playerid][1], 1);
 	PlayerTextDrawColor(playerid, speed[playerid][1], -1);
 	PlayerTextDrawSetShadow(playerid, speed[playerid][1], 0);
+	PlayerTextDrawSetOutline(playerid, speed[playerid][1], 1);
 	PlayerTextDrawBackgroundColor(playerid, speed[playerid][1], 255);
-	PlayerTextDrawFont(playerid, speed[playerid][1], 1);
+	PlayerTextDrawFont(playerid, speed[playerid][1], 0);
 	PlayerTextDrawSetProportional(playerid, speed[playerid][1], 1);
 
-	speed[playerid][2] = CreatePlayerTextDraw(playerid, 559.868713, 264.666778, "Health_:_1000");
-	PlayerTextDrawLetterSize(playerid, speed[playerid][2], 0.256163, 1.401665);
-	PlayerTextDrawTextSize(playerid, speed[playerid][2], -33.000000, 0.000000);
+	speed[playerid][2] = CreatePlayerTextDraw(playerid, 531.757141, 190.583374, "Speed:_200_KM/H");
+	PlayerTextDrawLetterSize(playerid, speed[playerid][2], 0.249604, 1.454166);
 	PlayerTextDrawAlignment(playerid, speed[playerid][2], 1);
 	PlayerTextDrawColor(playerid, speed[playerid][2], -1);
 	PlayerTextDrawSetShadow(playerid, speed[playerid][2], 0);
+	PlayerTextDrawSetOutline(playerid, speed[playerid][2], 1);
 	PlayerTextDrawBackgroundColor(playerid, speed[playerid][2], 255);
-	PlayerTextDrawFont(playerid, speed[playerid][2], 1);
+	PlayerTextDrawFont(playerid, speed[playerid][2], 2);
 	PlayerTextDrawSetProportional(playerid, speed[playerid][2], 1);
 
-	speed[playerid][3] = CreatePlayerTextDraw(playerid, 587.979797, 284.499969, "box");
-	PlayerTextDrawLetterSize(playerid, speed[playerid][3], 0.000000, 1.238655);
-	PlayerTextDrawTextSize(playerid, speed[playerid][3], 612.000000, 0.000000);
+	speed[playerid][3] = CreatePlayerTextDraw(playerid, 532.388793, 217.416625, "HEALTH:_100");
+	PlayerTextDrawLetterSize(playerid, speed[playerid][3], 0.231332, 1.494999);
 	PlayerTextDrawAlignment(playerid, speed[playerid][3], 1);
 	PlayerTextDrawColor(playerid, speed[playerid][3], -1);
-	PlayerTextDrawUseBox(playerid, speed[playerid][3], 1);
-	PlayerTextDrawBoxColor(playerid, speed[playerid][3], -16776961);
 	PlayerTextDrawSetShadow(playerid, speed[playerid][3], 0);
+	PlayerTextDrawSetOutline(playerid, speed[playerid][3], 1);
 	PlayerTextDrawBackgroundColor(playerid, speed[playerid][3], 255);
-	PlayerTextDrawFont(playerid, speed[playerid][3], 1);
+	PlayerTextDrawFont(playerid, speed[playerid][3], 2);
 	PlayerTextDrawSetProportional(playerid, speed[playerid][3], 1);
-
-	speed[playerid][4] = CreatePlayerTextDraw(playerid, 587.511169, 282.749969, "VGOD");
-	PlayerTextDrawLetterSize(playerid, speed[playerid][4], 0.235080, 1.244166);
-	PlayerTextDrawAlignment(playerid, speed[playerid][4], 1);
-	PlayerTextDrawColor(playerid, speed[playerid][4], -1);
-	PlayerTextDrawSetShadow(playerid, speed[playerid][4], 0);
-	PlayerTextDrawBackgroundColor(playerid, speed[playerid][4], 255);
-	PlayerTextDrawFont(playerid, speed[playerid][4], 1);
-	PlayerTextDrawSetProportional(playerid, speed[playerid][4], 1);
+	
 	speedactive[playerid] = 1;
 	return 1;
 }
@@ -298,8 +289,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
 			PlayerTextDrawShow(playerid, speed[playerid][1]);
 			PlayerTextDrawShow(playerid, speed[playerid][2]);
 			PlayerTextDrawShow(playerid, speed[playerid][3]);
-			PlayerTextDrawShow(playerid, speed[playerid][4]);
-	        speedinfo[playerid] = SetTimerEx("hSpeedINFO",1000,1,"d",playerid);
+	        speedinfo[playerid] = SetTimerEx("speedometer",100,1,"d",playerid);
 		}
 		if(oldstate == PLAYER_STATE_DRIVER)
 		{
@@ -307,7 +297,6 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
 			PlayerTextDrawHide(playerid, speed[playerid][1]);
 			PlayerTextDrawHide(playerid, speed[playerid][2]);
 			PlayerTextDrawHide(playerid, speed[playerid][3]);
-			PlayerTextDrawHide(playerid, speed[playerid][4]);
 			KillTimer(speedinfo[playerid]);
 		}
 	}
@@ -319,15 +308,17 @@ forward speedometer(playerid);
 public speedometer(playerid)
 {
 	new String[150];
+	format(String,150,"~R~%s",VehicleNames[GetVehicleModel(GetPlayerVehicleID(playerid))-400]);
+    PlayerTextDrawSetString(playerid, speed[playerid][1], String);
 	new Float:X;
 	new Float:Y;
 	new Float:Z;
 	GetVehicleVelocity(GetPlayerVehicleID(playerid),X,Y,Z);
-	format(String,150,"SPEED ~R~%d KM/H",floatround(floatsqroot(X * X + Y * Y + Z * Z) * 200.0000));
-    PlayerTextDrawSetString(playerid, speed[playerid][1], String);
+	format(String,150,"SPEED ~R~%d KM/H",floatround(floatsqroot(X * X + Y * Y + Z * Z) * 150.0000));
+    PlayerTextDrawSetString(playerid, speed[playerid][2], String);
 	new Float:Health;
 	GetVehicleHealth(GetPlayerVehicleID(playerid),Health);
 	format(String,150,"Health ~R~%d.0",floatround(Health / 10));
-    PlayerTextDrawSetString(playerid, speed[playerid][2], String);
+    PlayerTextDrawSetString(playerid, speed[playerid][3], String);
 	return 1;
 }

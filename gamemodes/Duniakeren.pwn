@@ -13,8 +13,16 @@
 
 #pragma tabsize 0
 
+//==============INCLUDE MAPPING============
+#include "mapping/palomino.inc"
+#include "mapping/asgh.inc"
+#include "mapping/tinju.inc"
+#include "mapping/verona.inc"
+#include "mapping/market.inc"
+//=========================================
+
 //HUD				
-new Text:PublicTD[3];
+new Text:PublicTD[4];
 //All god
 new godmode [MAX_PLAYERS];
 
@@ -144,6 +152,7 @@ enum p_Account_Data
 	pSkin,
 	bool: pLoggedin,
 	pAdmin,
+	pMoney
 }
 
 
@@ -151,6 +160,7 @@ new dropCampfire[MAX_PLAYERS][1];
 new dropBoombox[MAX_PLAYERS][1];
 new campFire[MAX_PLAYERS];
 new boomBox[MAX_PLAYERS];
+new Text3D:Label_Boombox;
 
 //======Register & loging Stuff======
 
@@ -160,6 +170,8 @@ new playerLogin[MAX_PLAYERS];
 //========Discord==========
 new DCC_Channel:commandChannel;
 //==========================
+
+new selectskin = mS_INVALID_LISTID;
 
 new AccountInfo[MAX_PLAYERS][p_Account_Data];
 main()
@@ -173,9 +185,6 @@ main()
 
 public OnGameModeInit()
 {
-	AddCharModel(305, 20001, "lvpdpc2.dff", "lvpdpc2.txd");
-	AddCharModel(305, 20002, "lapdpd2.dff", "lapdpd2.txd");
-
 	DisableInteriorEnterExits();
 	ourconnection = mysql_connect(SQL_HOSTNAME, SQL_USERNAME, SQL_DATABASE, SQL_PASSWORD);
 	
@@ -184,8 +193,16 @@ public OnGameModeInit()
 	else printf("DATABASE: berhasil menghubungkan mysql ");
 
 	joinskin = LoadModelSelectionMenu("skins.txt");
-
+	selectskin = LoadModelSelectionMenu("skins.txt");
+//=========================LOAD MAPPINGAN===================================
+	loadMappingVerona();
+	loadMappingAsgh();
+	loadMappingPalomino();
+	loadMappingTinju();
+	loadMappingMarket();
+//==========================================================================
 	SetTimer("ReturnDate", 1000, true);
+	SetTimer("infoplayer", 100, true);
 	//Textdraws
 	PublicTD[0] = TextDrawCreate(579.000000, 22.000000, "00:00");//Jam
 	TextDrawFont(PublicTD[0], 3);
@@ -228,18 +245,35 @@ public OnGameModeInit()
 	TextDrawUseBox(PublicTD[2], 0);
 	TextDrawSetProportional(PublicTD[2], 1);
 	TextDrawSetSelectable(PublicTD[2], 0);
+	
+	PublicTD[3] = TextDrawCreate(318.000000, 435.000000, "VID:_3_|_POS:_xyz_|_WID:_3_|_INT:_5");
+	TextDrawFont(PublicTD[3], 2);
+	TextDrawLetterSize(PublicTD[3], 0.279166, 1.350000);
+	TextDrawTextSize(PublicTD[3], 12.000000, 640.000000);
+	TextDrawSetOutline(PublicTD[3], 0);
+	TextDrawSetShadow(PublicTD[3], 0);
+	TextDrawAlignment(PublicTD[3], 2);
+	TextDrawColor(PublicTD[3], -1);
+	TextDrawBackgroundColor(PublicTD[3], 255);
+	TextDrawBoxColor(PublicTD[3], 101);
+	TextDrawUseBox(PublicTD[3], 1);
+	TextDrawSetProportional(PublicTD[3], 1);
+	TextDrawSetSelectable(PublicTD[3], 0);
 
 	pintutinju = CreatePickup(19133, 1, 871.8083,-1293.5560,3001.0859, -1);
 	pintuverdant = CreatePickup(1273, 1, 1122.7091,-2037.0099,69.8942, -1);
 	pintukeluarverdant = CreatePickup(1273, 1, 1260.6509,-785.4543,1091.9063, -1);
 	
-	AddCharModel(140, 22222, "Tamaki_Noct.dff", "Tamaki_Noct.txd");
 	return 1;
 }
 
 public OnGameModeExit()
 {
 	mysql_close(ourconnection);
+	foreach(Player, i)
+	{
+		Kick(i);
+	}
 	return 1;
 }
 
@@ -291,17 +325,6 @@ RemoveBuildingForPlayer(playerid, 634, 975.609, -1689.265, 11.382, 0.250);
 RemoveBuildingForPlayer(playerid, 615, 968.226, -1665.687, 12.210, 0.250);
 RemoveBuildingForPlayer(playerid, 634, 975.609, -1662.210, 11.382, 0.250);
 
-
-RemoveBuildingForPlayer(playerid, 5949, 877.1641, -1361.2031, 12.4531, 0.25);
-RemoveBuildingForPlayer(playerid, 1440, 857.3750, -1381.1641, 13.0469, 0.25);
-RemoveBuildingForPlayer(playerid, 1365, 861.9844, -1380.4609, 13.6250, 0.25);
-RemoveBuildingForPlayer(playerid, 1462, 853.1953, -1359.7266, 12.5547, 0.25);
-RemoveBuildingForPlayer(playerid, 5815, 877.1641, -1361.2031, 12.4531, 0.25);
-RemoveBuildingForPlayer(playerid, 1462, 886.3438, -1357.3047, 12.5547, 0.25);
-RemoveBuildingForPlayer(playerid, 1411, 870.1484, -1343.6563, 14.0859, 0.25);
-RemoveBuildingForPlayer(playerid, 1438, 872.2656, -1346.4141, 12.5313, 0.25);
-RemoveBuildingForPlayer(playerid, 1411, 875.4141, -1343.6563, 14.0859, 0.25);
-
 /////////////////////////////////////////////////////////////////////////////////////////
 	SetPlayerCamera(playerid);
 	ResetPlayer(playerid);
@@ -314,7 +337,7 @@ RemoveBuildingForPlayer(playerid, 1411, 875.4141, -1343.6563, 14.0859, 0.25);
 	sniperworld[playerid] = false;
 	campFire[playerid] = 0;
 	boomBox[playerid] = 0;
-	for(new w = 0; w < 3; w++)
+	for(new w = 0; w < 4; w++)
 	{
 	TextDrawShowForPlayer(playerid, PublicTD[w]);
 	}
@@ -619,6 +642,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			new continueCheck[211];
 			mysql_format(ourconnection, continueCheck, sizeof(continueCheck), "SELECT acc_dbid FROM accounts WHERE acc_name = '%e' AND acc_pass = sha1('%e') LIMIT 1",ReturnName(playerid), inputtext);
 			mysql_tquery(ourconnection, continueCheck, "LoggingIn", "i", playerid);
+
+			GivePlayerMoney(playerid, AccountInfo[playerid][pMoney]);
 			return 1;
 		}
 	}
@@ -649,6 +674,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						SetPlayerPos(playerid, 876.9653,-1293.1692,3001.0859);
 						SetPlayerInterior(playerid, 13);
 						SetPlayerSkin(playerid, 80);
+
 						return 1;
 					}
 				}
@@ -708,10 +734,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 			if(boomBox[playerid] == 0)
 			{
+				new string[128], pName[MAX_PLAYER_NAME];
 				new Float:BBPos[4]; //BBPos adalah BoomBox Position.
 				GetPlayerPos(playerid, BBPos[0], BBPos[1], BBPos[2]);
 				GetPlayerFacingAngle(playerid, BBPos[3]);
 				dropBoombox[playerid][0] = CreateDynamicObject(2226, BBPos[0], BBPos[1], BBPos[2]-1, 0.0, 0.0, 0.0, GetPlayerVirtualWorld(playerid),  GetPlayerInterior(playerid));
+				GetPlayerName(playerid,pName,MAX_PLAYER_NAME);
+				format(string, sizeof(string), "Pemilik Boombox ini %s", pName);
+				Label_Boombox = Create3DTextLabel(string, COL_WHITE, BBPos[0], BBPos[1], BBPos[2]-0.8, 7.0, GetPlayerVirtualWorld(playerid), 0);
 				foreach(Player, i)
 				{
 				PlayAudioStreamForPlayer(i, inputtext, BBPos[0], BBPos[1], BBPos[2], 7.0, 1);
@@ -726,6 +756,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				{
 					StopAudioStreamForPlayer(i);
 					DestroyDynamicObject(dropBoombox[playerid][0]);
+					Delete3DTextLabel(Label_Boombox);
 				}
 				boomBox[playerid] = 0;
 				return 1;
@@ -1941,6 +1972,15 @@ public OnPlayerModelSelection(playerid, response, listid, modelid)
 		AccountInfo[playerid][pSkin] = modelid;
 		SetSpawnInfo(playerid, 0, modelid, 929.0081,-1720.4331,13.5465,80.3241,0,0,0,0,0,0);
 		SpawnPlayer(playerid);
+		return 1;
+	}
+	if(listid == selectskin)
+	{
+		if(!response)
+			return ShowModelSelectionMenu(playerid, joinskin, "Pilih Skin");
+		SetPlayerSkin(playerid, modelid);
+		AccountInfo[playerid][pSkin] = modelid;
+		return 1;
 	}
 	return 1;
 }
@@ -2032,8 +2072,16 @@ public DCC_OnMessageCreate(DCC_Message:message)
 	return 1;
 }
 
-
-
+forward infoplayer(playerid);
+public infoplayer(playerid)
+{
+	new string1[256];
+    new Float:X,Float:Y,Float:Z;
+    GetPlayerPos(playerid, X, Y, Z);
+    format(string1,sizeof(string1),"VID:%d_|_POS:_X:%.0f Y:%.0f Z:%.0f_|_WID:%d_|_INT:%d", GetPlayerVehicleID(playerid), X, Y, Z, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid));
+    TextDrawSetString(PublicTD[3], string1);
+	return 1;
+}
 //_________________Command___________________
 
 CMD:cmdlist(playerid, params[])
@@ -2101,14 +2149,18 @@ CMD:kill(playerid, params[]) //cmd bundir
 
 CMD:skin(playerid, params[]) //cmd skin
 {
-	new skinid;
-	if(sscanf(params, "i", skinid))
-		return SCM(playerid, COL_RED, "[SERVER]: /skin {61c5dd}[ID]");
-	if(skinid < 1 || skinid >299)
+	new modelid;
+	if(!strcmp(params,"list",true))
+	{
+		ShowModelSelectionMenu(playerid, selectskin, "Pilih Skin");
+		SetPlayerSkin(playerid, modelid);
+		return 1;
+	}
+	if(sscanf(params, "i", modelid))
+		return SCM(playerid, COL_RED, "[SERVER]: /skin {61c5dd}[skinID/list]");
+	if(modelid < 1 || modelid > 299)
 		return SCM(playerid, COL_RED, "[SERVER]: Tidak bisa memilih skin tersebut" );
-
-		SetPlayerSkin(playerid, skinid);
-
+	SetPlayerSkin(playerid, modelid);
 	return 1;
 }
 
@@ -2199,20 +2251,6 @@ CMD:v(playerid,params[])
 	return 1;
 }
 
-CMD:spawnveh(playerid, params[])
-{
-	new vid;
-	if(sscanf(params,"i",vid) || (vid < 400 || vid > 611)) 
-		return SendClientMessage(playerid, COL_RED,"[SERVER]: /spawnveh {61c5dd}[VehicleID (400-611)]");
-	new Float:pos[4];
-		GetPlayerPos(playerid,pos[0],pos[1],pos[2]);
-		GetPlayerFacingAngle(playerid,pos[3]);
-		SetPlayerFacingAngle(playerid,pos[3]);
-		CreateVehicle(vid,pos[0],pos[1] + 2,pos[2],pos[3],-1,-1,0,0);
-		SCM(playerid, COL_ORANGE, "[SRVER]: Berhasil spawn kendaraan");
-	return 1;
-}
-
 CMD:para(playerid, params[])
 {
 	GivePlayerWeapon(playerid, 46, 1);
@@ -2224,7 +2262,8 @@ CMD:money(playerid, params[])
 {
 	new money;
 	new target;
-	new reason[128];
+	new reason[128], insert[150];
+	AccountInfo[target][pMoney] = money;
 	if(AccountInfo[playerid][pAdmin] < 1)
 		return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
 	if(sscanf(params, "iis[128]", target, money, reason))
@@ -2232,6 +2271,9 @@ CMD:money(playerid, params[])
 	GivePlayerMoney(target,money);
 	SCMex(playerid, COL_ORANGE, "Kamu Memberikan uang sebesar {61c5dd}%i {ffaa00}kepada {61c5dd}%s", money, ReturnName(target));
 	SCMex(target, COL_ORANGE, "Kamu telah diberikan uang oleh {61c5dd}%s {ffaa00}sebesar {61c5dd}%i {ffaa00}[Reason: %s]", ReturnName(playerid), money, reason);
+	
+	mysql_format(ourconnection, insert, sizeof(insert), "UPDATE accounts SET Money = %i WHERE acc_dbid = %i", money, AccountInfo[target][pDBID]);
+	mysql_tquery(ourconnection, insert);
 	return 1;
 }
 
@@ -2551,7 +2593,11 @@ CMD:drop(playerid, params[])
 
 CMD:tes(playerid, params[])
 {
-	SetPlayerSkin(playerid, 20003);
+	new string1[256];
+    new Float:X,Float:Y,Float:Z;
+    GetPlayerPos(playerid,X,Y,Z);
+    format(string1,sizeof(string1),"Position = X: %.0f , Y: %.0f , Z: %.0f",X,Y,Z);
+    SendClientMessage(playerid,COL_GREEN,string1);
 	return 1;
 }
 // CMD:tp(playerid,params[])
@@ -2869,6 +2915,7 @@ function:Query_LoadAccount(playerid)
 {
 	AccountInfo[playerid][pAdmin] = cache_get_field_content_int(0, "Admin", ourconnection);
 	AccountInfo[playerid][pDBID] = cache_get_field_content_int(0, "acc_dbid", ourconnection);
+	AccountInfo[playerid][pMoney] = cache_get_field_content_int(0, "Money", ourconnection);
 	return 1;
 }
 

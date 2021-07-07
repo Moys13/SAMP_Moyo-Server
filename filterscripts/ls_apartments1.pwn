@@ -201,11 +201,11 @@ forward Float:GetDoorsZCoordForFloor(floorid);
 // to enable a simple teleport command (/lsa) which teleports the player to
 // outside the LS Apartments 1 building.
 
-/*
+
 public OnPlayerCommandText(playerid, cmdtext[])
 {
 	// Check command text
-	if (strcmp("/lsa", cmdtext, true, 4) == 0)
+	if (strcmp("/apart", cmdtext, true, 4) == 0)
 	{
 	    // Set the interior
 		SetPlayerInterior(playerid, 0);
@@ -227,7 +227,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	// Exit here (return 0 as the command was not handled in this filterscript)
 	return 0;
 }
-*/
 
 public OnFilterScriptInit()
 {

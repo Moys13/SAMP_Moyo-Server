@@ -93,11 +93,13 @@ CMD:discord(playerid, params[])
     {
         chatdc[playerid] = 1;
         SendClientMessage(playerid, COL_YELLOW, "Anda telah mengaktifkan chat discord!");
+        return 1;
     }
     if(!strcmp(params, "mute", true))
     {
         chatdc[playerid] = 0;
         SendClientMessage(playerid, COL_YELLOW, "Anda telah membisukan obrolan discord!");
+        return 1;
     }
     else
     {
