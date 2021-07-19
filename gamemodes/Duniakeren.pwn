@@ -23,6 +23,7 @@
 
 //HUD				
 new Text:PublicTD[4];
+new hideinfo[MAX_PLAYERS];
 //All god
 new godmode [MAX_PLAYERS];
 
@@ -133,14 +134,13 @@ static stock g_arrVehicleNames[][] = {
 #define VEHICLE_TYPE_OTHERS     "Train & Others"
 #define VEHICLE_TYPE_BIKE       "Bicycle"
 
-
 //===========Mysql============
-new ourconnection;
+new MySQL:ourconnection;
 
-#define SQL_HOSTNAME "127.0.0.1"
-#define SQL_USERNAME "root"
-#define SQL_DATABASE "datasamp"
-#define SQL_PASSWORD ""
+#define MYSQL_HOSTNAME		"localhost" // Change this to your own MySQL hostname
+#define MYSQL_USERNAME		"root" // Change this
+#define MYSQL_PASSWORD		"" // If you have a password, type it there. If you don't leave it blank.
+#define MYSQL_DATABASE		"datasamp" // Change this
 
 //============================
 
@@ -186,11 +186,14 @@ main()
 public OnGameModeInit()
 {
 	DisableInteriorEnterExits();
-	ourconnection = mysql_connect(SQL_HOSTNAME, SQL_USERNAME, SQL_DATABASE, SQL_PASSWORD);
-	
-	if(mysql_errno() !=0)
-		printf("DATABASE: gagal menghubungkan mysql ");
-	else printf("DATABASE: berhasil menghubungkan mysql ");
+	ourconnection = mysql_connect(MYSQL_HOSTNAME, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+	if(ourconnection == MYSQL_INVALID_HANDLE || mysql_errno(ourconnection) != 0)
+	{
+		print("SERVER: MySQL Connection failed, shutting the server down!");
+		return 1;
+	}
+	SetGameModeText("Moyo");
+	print("SERVER: MySQL Connection was successful.");
 
 	joinskin = LoadModelSelectionMenu("skins.txt");
 	selectskin = LoadModelSelectionMenu("skins.txt");
@@ -269,11 +272,11 @@ public OnGameModeInit()
 
 public OnGameModeExit()
 {
-	mysql_close(ourconnection);
-	foreach(Player, i)
+	foreach(Player, i) 
 	{
-		Kick(i);
+		saveData(i);
 	}
+	mysql_close(ourconnection);
 	return 1;
 }
 
@@ -301,42 +304,47 @@ public OnPlayerConnect(playerid)
     SendClientMessageToAll(COL_PINK,string);
 
 	//Remove Buildings///////////////////////////////////////////////////////////////////////////////////////////////
-RemoveBuildingForPlayer(playerid, 6208, 954.273, -1720.796, 20.773, 0.250);
-RemoveBuildingForPlayer(playerid, 729, 931.859, -1703.976, 11.320, 0.250);
-RemoveBuildingForPlayer(playerid, 726, 958.039, -1678.054, 10.742, 0.250);
-RemoveBuildingForPlayer(playerid, 729, 940.929, -1668.859, 11.320, 0.250);
-RemoveBuildingForPlayer(playerid, 729, 970.023, -1718.000, 11.320, 0.250);
-RemoveBuildingForPlayer(playerid, 760, 930.085, -1704.476, 12.203, 0.250);
-RemoveBuildingForPlayer(playerid, 748, 931.273, -1705.625, 12.390, 0.250);
-RemoveBuildingForPlayer(playerid, 748, 931.273, -1702.531, 12.390, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 932.320, -1751.117, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 932.468, -1709.726, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 933.257, -1731.484, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 939.710, -1761.000, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 937.265, -1696.835, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 759, 955.882, -1747.429, 12.171, 0.250);
-RemoveBuildingForPlayer(playerid, 6205, 954.273, -1720.796, 20.773, 0.250);
-RemoveBuildingForPlayer(playerid, 1231, 960.156, -1764.695, 15.218, 0.250);
-RemoveBuildingForPlayer(playerid, 759, 958.687, -1747.429, 12.171, 0.250);
-RemoveBuildingForPlayer(playerid, 748, 961.546, -1749.085, 12.570, 0.250);
-RemoveBuildingForPlayer(playerid, 634, 972.335, -1675.539, 11.382, 0.250);
-RemoveBuildingForPlayer(playerid, 634, 975.726, -1705.585, 11.921, 0.250);
-RemoveBuildingForPlayer(playerid, 634, 975.609, -1689.265, 11.382, 0.250);
-RemoveBuildingForPlayer(playerid, 615, 968.226, -1665.687, 12.210, 0.250);
-RemoveBuildingForPlayer(playerid, 634, 975.609, -1662.210, 11.382, 0.250);
+	RemoveBuildingForPlayer(playerid, 6208, 954.273, -1720.796, 20.773, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 931.859, -1703.976, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 726, 958.039, -1678.054, 10.742, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 940.929, -1668.859, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 970.023, -1718.000, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 760, 930.085, -1704.476, 12.203, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 931.273, -1705.625, 12.390, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 931.273, -1702.531, 12.390, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 932.320, -1751.117, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 932.468, -1709.726, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 933.257, -1731.484, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 939.710, -1761.000, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 937.265, -1696.835, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 759, 955.882, -1747.429, 12.171, 0.250);
+	RemoveBuildingForPlayer(playerid, 6205, 954.273, -1720.796, 20.773, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 960.156, -1764.695, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 759, 958.687, -1747.429, 12.171, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 961.546, -1749.085, 12.570, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 972.335, -1675.539, 11.382, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.726, -1705.585, 11.921, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.609, -1689.265, 11.382, 0.250);
+	RemoveBuildingForPlayer(playerid, 615, 968.226, -1665.687, 12.210, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.609, -1662.210, 11.382, 0.250);
 
 /////////////////////////////////////////////////////////////////////////////////////////
 	SetPlayerCamera(playerid);
 	ResetPlayer(playerid);
 
 	new existCheck [250];
-	mysql_format(ourconnection, existCheck, sizeof(existCheck), "SELECT * FROM accounts WHERE acc_name = '%e'", ReturnName(playerid));
-	mysql_tquery(ourconnection, existCheck, "Logplayerin", "i", playerid);
-
+	mysql_format(ourconnection, existCheck, sizeof(existCheck), "SELECT * FROM `accounts` WHERE `acc_name` = '%e'", ReturnName(playerid));
+	mysql_tquery(ourconnection, existCheck, "Logplayerin", "d", playerid);
+	
+	
 	SetPlayerInterior(playerid, 0);
 	sniperworld[playerid] = false;
 	campFire[playerid] = 0;
 	boomBox[playerid] = 0;
+	
+	TextDrawHideForAll(PublicTD[3]);
+	hideinfo[playerid] = 0;
+	
 	for(new w = 0; w < 4; w++)
 	{
 	TextDrawShowForPlayer(playerid, PublicTD[w]);
@@ -358,7 +366,9 @@ public OnPlayerDisconnect(playerid, reason)
         "Quit",
         "Kick/Ban"
     };
- 
+	
+	saveData(playerid);
+
     format(szString, sizeof szString, "%s left the server (%s).", playerName, szDisconnectReason[reason]);
 	SendClientMessageToAll(COL_PINK, szString);
 	
@@ -630,9 +640,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			if(strlen(inputtext) > 120 || strlen(inputtext) < 3)
 				return ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "Selamat datang di server ini", "tolong isi password dengan benar\nSelamat datang:\ntolong masukan password dibawah ini.\n\n", "Buat", "Batal");
 
-			mysql_format(ourconnection, insert, sizeof(insert), "INSERT INTO accounts (acc_name, acc_pass, register_ip, register_date) VALUES('%e', sha1('%e'), '%e', '%e')", ReturnName(playerid), inputtext, ReturnIP(playerid), ReturnDate());
-			
-			mysql_tquery(ourconnection, insert, "OnPlayerRegister", "i", playerid);
+			mysql_format(ourconnection, insert, sizeof(insert), "INSERT INTO `accounts` (`acc_name`, `acc_pass`, `register_ip`, `register_date`) VALUES ('%e', sha1('%e'), '%e', '%e')", ReturnName(playerid), inputtext, ReturnIP(playerid), ReturnDate());
+			mysql_tquery(ourconnection, insert, "OnPlayerRegister", "d", playerid);
 		}
 		case DIALOG_LOGIN:
 		{
@@ -640,10 +649,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				return Kick(playerid);
 			
 			new continueCheck[211];
-			mysql_format(ourconnection, continueCheck, sizeof(continueCheck), "SELECT acc_dbid FROM accounts WHERE acc_name = '%e' AND acc_pass = sha1('%e') LIMIT 1",ReturnName(playerid), inputtext);
-			mysql_tquery(ourconnection, continueCheck, "LoggingIn", "i", playerid);
-
-			GivePlayerMoney(playerid, AccountInfo[playerid][pMoney]);
+			mysql_format(ourconnection, continueCheck, sizeof(continueCheck), "SELECT `acc_dbid` FROM `accounts` WHERE `acc_name` = '%e' AND `acc_pass` = sha1('%e') LIMIT 1",ReturnName(playerid), inputtext);
+			mysql_tquery(ourconnection, continueCheck, "LoggingIn", "d", playerid);
 			return 1;
 		}
 	}
@@ -2119,7 +2126,7 @@ CMD:makeadmin(playerid, params[])
 		SCMex(playerb, COL_ORANGE, "Kamu telah menjadi admin level: %i oleh: %s", adminlvl, ReturnName(playerid));
 
 		AccountInfo[playerb][pAdmin] = adminlvl;
-		mysql_format(ourconnection, insert, sizeof(insert), "UPDATE accounts SET Admin = %i WHERE acc_dbid = %i", adminlvl, AccountInfo[playerb][pDBID]);
+		mysql_format(ourconnection, insert, sizeof(insert), "UPDATE `accounts` SET `Admin` = %i WHERE `acc_dbid` = %i", adminlvl, AccountInfo[playerb][pDBID]);
 		mysql_tquery(ourconnection, insert);
 	}
 	else return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
@@ -2262,8 +2269,7 @@ CMD:money(playerid, params[])
 {
 	new money;
 	new target;
-	new reason[128], insert[150];
-	AccountInfo[target][pMoney] = money;
+	new reason[128];
 	if(AccountInfo[playerid][pAdmin] < 1)
 		return SCM(playerid, COL_RED, "Kamu tidak diizinkan menggunakan perintah ini");
 	if(sscanf(params, "iis[128]", target, money, reason))
@@ -2271,9 +2277,6 @@ CMD:money(playerid, params[])
 	GivePlayerMoney(target,money);
 	SCMex(playerid, COL_ORANGE, "Kamu Memberikan uang sebesar {61c5dd}%i {ffaa00}kepada {61c5dd}%s", money, ReturnName(target));
 	SCMex(target, COL_ORANGE, "Kamu telah diberikan uang oleh {61c5dd}%s {ffaa00}sebesar {61c5dd}%i {ffaa00}[Reason: %s]", ReturnName(playerid), money, reason);
-	
-	mysql_format(ourconnection, insert, sizeof(insert), "UPDATE accounts SET Money = %i WHERE acc_dbid = %i", money, AccountInfo[target][pDBID]);
-	mysql_tquery(ourconnection, insert);
 	return 1;
 }
 
@@ -2593,13 +2596,28 @@ CMD:drop(playerid, params[])
 
 CMD:tes(playerid, params[])
 {
-	new string1[256];
-    new Float:X,Float:Y,Float:Z;
-    GetPlayerPos(playerid,X,Y,Z);
-    format(string1,sizeof(string1),"Position = X: %.0f , Y: %.0f , Z: %.0f",X,Y,Z);
-    SendClientMessage(playerid,COL_GREEN,string1);
+	
 	return 1;
 }
+
+
+
+CMD:infohide(playerid, params[])
+{
+	if(hideinfo[playerid] == 0)
+	{
+		TextDrawHideForPlayer(playerid, PublicTD[3]);
+		hideinfo[playerid] = 1;
+		SCM(playerid, COL_GREEN, "Berhasil menyembunyikan HUD player info /hideinfo untuk memunculkannya lagi");
+	}
+	else
+	{
+		TextDrawShowForPlayer(playerid, PublicTD[3]);
+		hideinfo[playerid] = 0;
+	}
+	return 1;
+}
+
 // CMD:tp(playerid,params[])
 // {
 // 		new Float:posx,Float:posy,Float:posz, inte;
@@ -2816,7 +2834,14 @@ stock dmmute(playerid)
 		return SCM(playerid, COL_RED, "Anda berada di dalam Deathmatch");
 }
 
-
+stock saveData(playerid)
+{
+	new insert[150];
+	AccountInfo[playerid][pMoney] = GetPlayerMoney(playerid);
+	mysql_format(ourconnection, insert, sizeof(insert), "UPDATE `accounts` SET `Money` = %i WHERE `acc_dbid` = %i", GetPlayerMoney(playerid), AccountInfo[playerid][pDBID]);
+	mysql_tquery(ourconnection, insert);
+	return 1;
+}
 //===========Function===========
 
 function:SetPlayerCamera(playerid)
@@ -2855,18 +2880,15 @@ function:ResetPlayer(playerid)
 
 function:Logplayerin(playerid)
 {
-	new rows, fields;
-	cache_get_data(rows, fields, ourconnection);
-	if(!rows)
+	if(cache_num_rows())
 	{
-		SCMex(playerid, COL_ORANGE, "Pemain %s tidak terdaftar di server ini", ReturnName(playerid));
-		SCMex(playerid, COL_ORANGE, "Tolong daftar untuk melanjutkan");
-
-		ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "Selamat datang di server ini", "Selamat datang:\ntolong masukan password dibawah ini.\n\n", "Buat", "Batal");
+		SCMex(playerid, COL_GREEN, "Akun anda telah login kembali di server ini");
+		ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "Selamat datang di server ini", "Player ini sudah terdaftar\n tolong masukan password dibawah\n\n", "Login", "Batal");
 		return 1;
 	}
-	SCMex(playerid, COL_GREEN, "Akun anda telah login kembali di server ini");
-	ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_PASSWORD, "Selamat datang di server ini", "Player ini sudah terdaftar\n tolong masukan password dibawah\n\n", "Login", "Batal");
+	SCMex(playerid, COL_ORANGE, "Pemain %s tidak terdaftar di server ini", ReturnName(playerid));
+	SCMex(playerid, COL_ORANGE, "Tolong daftar untuk melanjutkan");
+	ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_PASSWORD, "Selamat datang di server ini", "Selamat datang:\ntolong masukan password dibawah ini.\n\n", "Buat", "Batal");
 	return 1;
 }
 
@@ -2901,9 +2923,10 @@ function:LoggingIn(playerid)
 
 	new thread[120];
 
-	mysql_format(ourconnection, thread, sizeof(thread), "SELECT * FROM accounts WHERE acc_name = '%e'", ReturnName(playerid));
-	mysql_tquery(ourconnection, thread, "Query_LoadAccount", "i", playerid);
+	mysql_format(ourconnection, thread, sizeof(thread), "SELECT * FROM `accounts` WHERE `acc_name` = '%e'", ReturnName(playerid));
+	mysql_tquery(ourconnection, thread, "Query_LoadAccount", "d", playerid);
 
+	GivePlayerMoney(playerid,AccountInfo[playerid][pMoney]);
 	format(AccountInfo[playerid][pAccname], 30, "%s", ReturnName(playerid));
 	
 	AccountInfo[playerid][pLoggedin] = true;
@@ -2911,11 +2934,12 @@ function:LoggingIn(playerid)
 	return 1;
 }
 
+
 function:Query_LoadAccount(playerid)
 {
-	AccountInfo[playerid][pAdmin] = cache_get_field_content_int(0, "Admin", ourconnection);
-	AccountInfo[playerid][pDBID] = cache_get_field_content_int(0, "acc_dbid", ourconnection);
-	AccountInfo[playerid][pMoney] = cache_get_field_content_int(0, "Money", ourconnection);
+	cache_get_value_name_int(0, "Money", AccountInfo[playerid][pMoney]);
+	cache_get_value_name_int(0, "Admin", AccountInfo[playerid][pAdmin]);
+	cache_get_value_name_int(0, "acc_dbid", AccountInfo[playerid][pDBID]);
 	return 1;
 }
 
