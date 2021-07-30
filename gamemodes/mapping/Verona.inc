@@ -194,7 +194,29 @@ stock loadMappingVerona()
     verona = CreateDynamicObject(19452, 951.702087, -1746.823852, 12.568664, 0.000000, 0.000000, -89.399978, -1, -1, -1, 300.00, 300.00); 
 }
 
-stock removeMappingVerona(playerid)
+stock removeBuildingVerona(playerid)
 {
-    print("\n--Remove mapping Verona done\n");
+    RemoveBuildingForPlayer(playerid, 6208, 954.273, -1720.796, 20.773, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 931.859, -1703.976, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 726, 958.039, -1678.054, 10.742, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 940.929, -1668.859, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 729, 970.023, -1718.000, 11.320, 0.250);
+	RemoveBuildingForPlayer(playerid, 760, 930.085, -1704.476, 12.203, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 931.273, -1705.625, 12.390, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 931.273, -1702.531, 12.390, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 932.320, -1751.117, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 932.468, -1709.726, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 933.257, -1731.484, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 939.710, -1761.000, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 937.265, -1696.835, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 759, 955.882, -1747.429, 12.171, 0.250);
+	RemoveBuildingForPlayer(playerid, 6205, 954.273, -1720.796, 20.773, 0.250);
+	RemoveBuildingForPlayer(playerid, 1231, 960.156, -1764.695, 15.218, 0.250);
+	RemoveBuildingForPlayer(playerid, 759, 958.687, -1747.429, 12.171, 0.250);
+	RemoveBuildingForPlayer(playerid, 748, 961.546, -1749.085, 12.570, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 972.335, -1675.539, 11.382, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.726, -1705.585, 11.921, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.609, -1689.265, 11.382, 0.250);
+	RemoveBuildingForPlayer(playerid, 615, 968.226, -1665.687, 12.210, 0.250);
+	RemoveBuildingForPlayer(playerid, 634, 975.609, -1662.210, 11.382, 0.250);
 }

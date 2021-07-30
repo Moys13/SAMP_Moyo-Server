@@ -289,7 +289,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate)
 			PlayerTextDrawShow(playerid, speed[playerid][1]);
 			PlayerTextDrawShow(playerid, speed[playerid][2]);
 			PlayerTextDrawShow(playerid, speed[playerid][3]);
-	        speedinfo[playerid] = SetTimerEx("speedometer",100,1,"d",playerid);
+	        speedinfo[playerid] = SetTimerEx("speedometer",1000,1,"d",playerid);
 		}
 		if(oldstate == PLAYER_STATE_DRIVER)
 		{

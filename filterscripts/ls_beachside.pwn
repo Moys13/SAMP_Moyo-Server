@@ -205,7 +205,7 @@ forward Float:GetDoorsZCoordForFloor(floorid);
 // to enable a simple teleport command (/lsb) which teleports the player to
 // outside the LS BeachSide building.
 
-
+/*
 public OnPlayerCommandText(playerid, cmdtext[])
 {
 	// Check command text
@@ -231,7 +231,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	// Exit here (return 0 as the command was not handled in this filterscript)
 	return 0;
 }
-
+*/
 
 public OnFilterScriptInit()
 {

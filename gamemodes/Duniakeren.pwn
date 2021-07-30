@@ -10,6 +10,8 @@
 #include <streamer>
 #include <foreach>
 #include <discord-connector>
+#include <easyDialog>
+
 
 #pragma tabsize 0
 
@@ -19,6 +21,10 @@
 #include "mapping/tinju.inc"
 #include "mapping/verona.inc"
 #include "mapping/market.inc"
+#include "mapping/sweeper.inc"
+//=========================================
+//===============CHECKPOINT================
+#include "checkpoint/sweepcheckpoint.inc"
 //=========================================
 
 //HUD				
@@ -137,10 +143,10 @@ static stock g_arrVehicleNames[][] = {
 //===========Mysql============
 new MySQL:ourconnection;
 
-#define MYSQL_HOSTNAME		"localhost" // Change this to your own MySQL hostname
-#define MYSQL_USERNAME		"root" // Change this
-#define MYSQL_PASSWORD		"" // If you have a password, type it there. If you don't leave it blank.
-#define MYSQL_DATABASE		"datasamp" // Change this
+#define MYSQL_HOSTNAME		"localhost"
+#define MYSQL_USERNAME		"root"
+#define MYSQL_PASSWORD		""
+#define MYSQL_DATABASE		"datasamp"
 
 //============================
 
@@ -152,7 +158,8 @@ enum p_Account_Data
 	pSkin,
 	bool: pLoggedin,
 	pAdmin,
-	pMoney
+	pMoney,
+	pSweeping
 }
 
 
@@ -174,6 +181,7 @@ new DCC_Channel:commandChannel;
 new selectskin = mS_INVALID_LISTID;
 
 new AccountInfo[MAX_PLAYERS][p_Account_Data];
+
 main()
 {
 	commandChannel = DCC_FindChannelById("856012335679143967");//ID channel Discord
@@ -185,6 +193,9 @@ main()
 
 public OnGameModeInit()
 {
+	AddCharModel(305, 20001, "lvpdpc2.dff", "lvpdpc2.txd");
+	AddCharModel(305, 20002, "lapdpd2.dff", "lapdpd2.txd");
+
 	DisableInteriorEnterExits();
 	ourconnection = mysql_connect(MYSQL_HOSTNAME, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
 	if(ourconnection == MYSQL_INVALID_HANDLE || mysql_errno(ourconnection) != 0)
@@ -203,6 +214,7 @@ public OnGameModeInit()
 	loadMappingPalomino();
 	loadMappingTinju();
 	loadMappingMarket();
+	loadMappingSweeper();
 //==========================================================================
 	SetTimer("ReturnDate", 1000, true);
 	SetTimer("infoplayer", 100, true);
@@ -266,6 +278,14 @@ public OnGameModeInit()
 	pintutinju = CreatePickup(19133, 1, 871.8083,-1293.5560,3001.0859, -1);
 	pintuverdant = CreatePickup(1273, 1, 1122.7091,-2037.0099,69.8942, -1);
 	pintukeluarverdant = CreatePickup(1273, 1, 1260.6509,-785.4543,1091.9063, -1);
+
+	// =====================SWEEPER JOB========================
+	CreateVehicle(574,433.449,-1360.448,14.532,31.414,6,6,-1,0);
+    CreateVehicle(574,437.099,-1358.218,14.538,30.034,6,5,-1,0);
+    CreateVehicle(574,441.202,-1355.651,14.545,32.059,6,0,-1,0);
+    CreateVehicle(574,444.897,-1353.384,14.550,30.334,6,6,-1,0);
+	// ========================================================
+
 	
 	return 1;
 }
@@ -285,6 +305,7 @@ public OnPlayerRequestClass(playerid, classid)
 	if(AccountInfo[playerid][pLoggedin] == false)
 	{
 		SetSpawnInfo( playerid, 0, 0, 563.3157, 3315.2559, 0, 269.15, 0, 0, 0, 0, 0, 0 );
+		ShowPlayerMarkers(PLAYER_MARKERS_MODE_OFF);
 		TogglePlayerSpectating(playerid, true);
 		TogglePlayerSpectating(playerid, false);
 		SetPlayerCamera(playerid);
@@ -304,31 +325,10 @@ public OnPlayerConnect(playerid)
     SendClientMessageToAll(COL_PINK,string);
 
 	//Remove Buildings///////////////////////////////////////////////////////////////////////////////////////////////
-	RemoveBuildingForPlayer(playerid, 6208, 954.273, -1720.796, 20.773, 0.250);
-	RemoveBuildingForPlayer(playerid, 729, 931.859, -1703.976, 11.320, 0.250);
-	RemoveBuildingForPlayer(playerid, 726, 958.039, -1678.054, 10.742, 0.250);
-	RemoveBuildingForPlayer(playerid, 729, 940.929, -1668.859, 11.320, 0.250);
-	RemoveBuildingForPlayer(playerid, 729, 970.023, -1718.000, 11.320, 0.250);
-	RemoveBuildingForPlayer(playerid, 760, 930.085, -1704.476, 12.203, 0.250);
-	RemoveBuildingForPlayer(playerid, 748, 931.273, -1705.625, 12.390, 0.250);
-	RemoveBuildingForPlayer(playerid, 748, 931.273, -1702.531, 12.390, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 932.320, -1751.117, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 932.468, -1709.726, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 933.257, -1731.484, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 939.710, -1761.000, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 937.265, -1696.835, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 759, 955.882, -1747.429, 12.171, 0.250);
-	RemoveBuildingForPlayer(playerid, 6205, 954.273, -1720.796, 20.773, 0.250);
-	RemoveBuildingForPlayer(playerid, 1231, 960.156, -1764.695, 15.218, 0.250);
-	RemoveBuildingForPlayer(playerid, 759, 958.687, -1747.429, 12.171, 0.250);
-	RemoveBuildingForPlayer(playerid, 748, 961.546, -1749.085, 12.570, 0.250);
-	RemoveBuildingForPlayer(playerid, 634, 972.335, -1675.539, 11.382, 0.250);
-	RemoveBuildingForPlayer(playerid, 634, 975.726, -1705.585, 11.921, 0.250);
-	RemoveBuildingForPlayer(playerid, 634, 975.609, -1689.265, 11.382, 0.250);
-	RemoveBuildingForPlayer(playerid, 615, 968.226, -1665.687, 12.210, 0.250);
-	RemoveBuildingForPlayer(playerid, 634, 975.609, -1662.210, 11.382, 0.250);
-
-/////////////////////////////////////////////////////////////////////////////////////////
+	removeBuildingVerona(playerid);
+	removeBuildingSweeper(playerid);
+	/////////////////////////////////////////////////////////////////////////////////////////
+	
 	SetPlayerCamera(playerid);
 	ResetPlayer(playerid);
 
@@ -341,6 +341,7 @@ public OnPlayerConnect(playerid)
 	sniperworld[playerid] = false;
 	campFire[playerid] = 0;
 	boomBox[playerid] = 0;
+	AccountInfo[playerid][pSweeping] = 0;
 	
 	TextDrawHideForAll(PublicTD[3]);
 	hideinfo[playerid] = 0;
@@ -372,6 +373,7 @@ public OnPlayerDisconnect(playerid, reason)
     format(szString, sizeof szString, "%s left the server (%s).", playerName, szDisconnectReason[reason]);
 	SendClientMessageToAll(COL_PINK, szString);
 	
+	AccountInfo[playerid][pSweeping] = 0;
 	return 1;
 }
 
@@ -385,7 +387,7 @@ public OnPlayerSpawn(playerid)
 	{
 		SetPlayerHealth(playerid,100.0);
 	}
-	if(sniperworld[playerid] == true)
+	if(sniperworld[playerid] == 1)
 	{
 		setspawnsniper(playerid);
 	}
@@ -397,6 +399,12 @@ public OnPlayerDeath(playerid, killerid, reason)
 	SendDeathMessage(killerid, playerid, reason);
 	GivePlayerMoney(killerid, 500);
 	SetPlayerScore(killerid, 1);
+	DisablePlayerCheckpoint(playerid);
+	if(AccountInfo[playerid][pSweeping] == 1)
+	{
+		SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+		AccountInfo[playerid][pSweeping] = 0;
+	}
 	return 1;
 }
 
@@ -407,6 +415,11 @@ public OnVehicleSpawn(vehicleid)
 
 public OnVehicleDeath(vehicleid, killerid)
 {
+	new playerid;
+	if(GetVehicleModel(574))
+	{
+		SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+	}
 	return 1;
 }
 
@@ -442,10 +455,17 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 
 public OnPlayerExitVehicle(playerid, vehicleid)
 {
-	if (vgod[playerid] = 1)
+	if (vgod[playerid] == 1)
 	{
 		vgod[playerid] = 0;
 		SetVehicleHealth(GetPlayerVehicleID(playerid), 1000);
+	}
+	if(GetVehicleModel(GetPlayerVehicleID(playerid)) == 574)
+	{
+		AccountInfo[playerid][pSweeping] = 0;
+		SCM(playerid, COL_RED, "Sweeper: Kamu keluar dari kendaraan otomatis Sweeper gagal");
+		SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+		DisablePlayerCheckpoint(playerid);
 	}
 	return 1;
 }
@@ -458,11 +478,21 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		DestroyVehicle(RemVeh[playerid]);
 		RemVeh[playerid] = -1;
 	}
+	if(newstate == PLAYER_STATE_DRIVER && GetVehicleModel(GetPlayerVehicleID(playerid)) == 574)
+	{
+			AccountInfo[playerid][pSweeping] = 1;
+			SCM(playerid, COL_GREEN, "Sweeper: Ikuti Checkpoint yang ada di map!");
+			Dialog_Show(playerid, DIALOG_SWEEPER , DIALOG_STYLE_LIST, "Sweeper", "SMB\nRodeo\nTemple\nMarket", "Select", "Cancel");
+	}
 	return 1;
 }
 
 public OnPlayerEnterCheckpoint(playerid)
 {
+	sweepSmbCheckpoint(playerid);
+	sweepRodeoCheckpoint(playerid);
+	sweepTempleCheckpoint(playerid);
+	sweepMarketCheckpoint(playerid);
 	return 1;
 }
 
@@ -559,7 +589,6 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
     {
 		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 			SetVehicleSpeed(GetPlayerVehicleID(playerid), 200, true);
-		return 1;
 	}
 	if (PRESSED(KEY_YES))
 	{
@@ -579,17 +608,17 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	{
 		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 		{
-			new Float:angle,
-				vehid = GetPlayerVehicleID(playerid);
+			new Float:angle;
+			new vehid = GetPlayerVehicleID(playerid);
 			GetVehicleZAngle(vehid,angle);
 			SetVehicleZAngle(vehid,angle);
 		}
 	}
 	if(PRESSED(KEY_CTRL_BACK))
 	{
-		if(sniperworld[playerid] == true)
+		if(sniperworld[playerid] == 1)
 		{
-			sniperworld[playerid] = false;
+			sniperworld[playerid] = 0;
 			ShowPlayerDialog(playerid, DIALOG_LEAVEDM, DIALOG_STYLE_MSGBOX, "Death Match", "Apakah kamu akan keluar dari Death Match?", "yes", "No");
 		}
 	}
@@ -2002,38 +2031,6 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	return 1;
 }
 
-forward ReturnDate();
-public ReturnDate()
-{
-	new	
-		string[800],
-        month[12],
-        date[6];
- 
-    getdate(date[2], date[1], date[0]);
-    gettime(date[3], date[4], date[5]);
- 
-    switch (date[1]) 
-	{
-        case 1: month = "01";
-        case 2: month = "02";
-        case 3: month = "03";
-        case 4: month = "04";
-        case 5: month = "05";
-        case 6: month = "06";
-        case 7: month = "07";
-        case 8: month = "08";
-        case 9: month = "09";
-        case 10: month = "10";
-        case 11: month = "11";
-        case 12: month = "12";
-	}
-    format(string, sizeof string, "%02d:%02d:%02d", date[3], date[4], date[5]);//jam
-    TextDrawSetString(PublicTD[0], string);
-	format(string, sizeof string, "%02d/%s/%d", date[0], month, date[2]);//Tanggal
-	TextDrawSetString(PublicTD[1], string);
-}
-
 public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
 	if(vgod[playerid]==1)
@@ -2043,6 +2040,7 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 	}
 	return 1;
 }
+
 //____________________DISCORD Connector______________
 /*
 untuk berinteraksi pada channel discord
@@ -2079,16 +2077,40 @@ public DCC_OnMessageCreate(DCC_Message:message)
 	return 1;
 }
 
-forward infoplayer(playerid);
-public infoplayer(playerid)
+// _________________DIALOG_____________________________
+
+Dialog:DIALOG_SWEEPER(playerid, response, listitem, inputtext[])
 {
-	new string1[256];
-    new Float:X,Float:Y,Float:Z;
-    GetPlayerPos(playerid, X, Y, Z);
-    format(string1,sizeof(string1),"VID:%d_|_POS:_X:%.0f Y:%.0f Z:%.0f_|_WID:%d_|_INT:%d", GetPlayerVehicleID(playerid), X, Y, Z, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid));
-    TextDrawSetString(PublicTD[3], string1);
+	if(response)
+	{
+		switch(listitem)
+		{
+			case 0:
+			{
+				SetPlayerCheckpoint(playerid, sweepersmb1, 3.0);
+			}
+			case 1:
+			{
+				SetPlayerCheckpoint(playerid, sweeperrodeo1, 5.0);
+			}
+			case 2:
+			{
+				SetPlayerCheckpoint(playerid, sweepertemple1, 5.0);
+			}
+			case 3:
+			{
+				SetPlayerCheckpoint(playerid, sweepermarket1, 5.0);
+			}
+		}
+	}
+	else
+	{
+		AccountInfo[playerid][pSweeping] = 0;
+		SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+	}
 	return 1;
 }
+
 //_________________Command___________________
 
 CMD:cmdlist(playerid, params[])
@@ -2245,6 +2267,8 @@ CMD:v(playerid,params[])
 		return SendClientMessage(playerid, COL_RED,"[SERVER]: /v {61c5dd}[VehicleID (400-611)]");
 	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 		return SCM(playerid, COL_RED, "Kamu tidak bisa spawn di dalam kendaraan!");
+	if(vid == 574)
+		return SCM(playerid, COL_RED, "Kamu tidak bisa spawn kendaraan tersebut!");
 	new Float:pos[4];
 		GetPlayerPos(playerid,pos[0],pos[1],pos[2]);
 		GetPlayerFacingAngle(playerid,pos[3]);
@@ -2405,7 +2429,7 @@ CMD:dveh(playerid, params[])
 	SCMex(pid, COL_ORANGE, "kendaraan di hapus oleh: {61c5dd}%s", ReturnName(playerid));
 	return 1;
 	}
-	return SCM(playerid, COL_RED, "Error: Player tidak di dalam kendaraaan");
+	SCM(playerid, COL_RED, "Error: Player tidak di dalam kendaraaan");
 	return 1;
 }
 
@@ -2444,7 +2468,7 @@ CMD:freeze(playerid, params[])
 
 	SCMex(playerid, COL_ORANGE, "admin %s has freezed you.", ReturnName(playerid));
 	SCMex(target, COL_ORANGE, "You have freezed by %s.", ReturnName(playerid));
-
+	return 1;
 }
 
 CMD:unfreeze(playerid, params[])
@@ -2596,10 +2620,9 @@ CMD:drop(playerid, params[])
 
 CMD:tes(playerid, params[])
 {
-	
+	SetPlayerSkin(playerid, 20001);
 	return 1;
 }
-
 
 
 CMD:infohide(playerid, params[])
@@ -2842,6 +2865,399 @@ stock saveData(playerid)
 	mysql_tquery(ourconnection, insert);
 	return 1;
 }
+
+stock sweepSmbCheckpoint(playerid)
+{
+    if(AccountInfo[playerid][pSweeping] == 1)
+	{
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb1))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb2, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb2))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb3, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb3))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb4, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb4))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb5, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb5))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb6, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb6))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb7, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb7))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb8, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb8))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb9, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb9))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb10, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb10))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb11, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb11))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb12, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb12))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb13, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb13))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb14, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb14))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb15, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb15))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb16, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb16))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb17, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb17))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb18, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb18))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb19, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb19))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb20, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb20))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb21, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb21))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb22, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb22))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb23, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb23))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb24, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb24))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb25, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb25))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb26, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb26))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb27, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb27))
+		{
+			SetPlayerCheckpoint(playerid, sweepersmb28, 5.0);
+		}
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepersmb28))
+		{
+			GivePlayerMoney(playerid, 3000);
+			SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+			DisablePlayerCheckpoint(playerid);
+			AccountInfo[playerid][pSweeping] = 0;
+		}
+	}
+    return 1;
+}
+
+stock sweepRodeoCheckpoint(playerid)
+{
+	if(AccountInfo[playerid][pSweeping] == 1)
+	{
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo1))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo2, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo2))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo3, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo3))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo4, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo4))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo5, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo5))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo6, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo6))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo7, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo7))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo8, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo8))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo9, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo9))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo10, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo10))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo11, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo11))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo12, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo12))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo13, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo13))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo14, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo14))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo15, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo15))
+		{
+			SetPlayerCheckpoint(playerid, sweeperrodeo16, 5.0);
+		}
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweeperrodeo16))
+		{
+			GivePlayerMoney(playerid, 3000);
+			SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+			DisablePlayerCheckpoint(playerid);
+			AccountInfo[playerid][pSweeping] = 0;
+		}
+	}
+	return 1;
+}
+
+stock sweepTempleCheckpoint(playerid)
+{
+	if(AccountInfo[playerid][pSweeping] == 1)
+	{
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple1))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple2, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple2))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple3, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple3))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple4, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple4))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple5, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple5))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple6, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple6))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple7, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple7))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple8, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple8))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple9, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple9))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple10, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple10))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple11, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple11))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple12, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple12))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple13, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple13))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple14, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple14))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple15, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple15))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple16, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple16))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple17, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple17))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple18, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple18))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple19, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple19))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple20, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple20))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple21, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple21))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple22, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple22))
+		{
+			SetPlayerCheckpoint(playerid, sweepertemple23, 5.0);
+		}
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepertemple23))
+		{
+			GivePlayerMoney(playerid, 3000);
+			SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+			DisablePlayerCheckpoint(playerid);
+			AccountInfo[playerid][pSweeping] = 0;
+		}
+	}
+	return 1;
+}
+
+stock sweepMarketCheckpoint(playerid)
+{
+	if(AccountInfo[playerid][pSweeping] == 1)
+	{
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket1))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket2, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket2))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket3, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket3))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket4, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket4))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket5, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket5))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket6, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket6))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket7, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket7))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket8, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket8))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket9, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket9))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket10, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket10))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket11, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket11))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket12, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket12))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket13, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket13))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket14, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket14))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket15, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket15))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket16, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket16))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket17, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket17))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket18, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket18))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket19, 5.0);
+		}
+		else if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket19))
+		{
+			SetPlayerCheckpoint(playerid, sweepermarket20, 5.0);
+		}
+		if(IsPlayerInRangeOfPoint(playerid, 5.0, sweepermarket20))
+		{
+			GivePlayerMoney(playerid, 3000);
+			SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+			DisablePlayerCheckpoint(playerid);
+			AccountInfo[playerid][pSweeping] = 0;
+		}
+	}
+	return 1;
+}
+
 //===========Function===========
 
 function:SetPlayerCamera(playerid)
@@ -2947,5 +3363,47 @@ function:ReturnPlayerName(playerid)
 {
 	new player_name[MAX_PLAYER_NAME];
 	GetPlayerName(playerid, player_name, MAX_PLAYER_NAME);
+	return 1;
+}
+
+function:ReturnDate()
+{
+	new	
+		string[800],
+        month[12],
+        date[6];
+ 
+    getdate(date[2], date[1], date[0]);
+    gettime(date[3], date[4], date[5]);
+ 
+    switch (date[1]) 
+	{
+        case 1: month = "01";
+        case 2: month = "02";
+        case 3: month = "03";
+        case 4: month = "04";
+        case 5: month = "05";
+        case 6: month = "06";
+        case 7: month = "07";
+        case 8: month = "08";
+        case 9: month = "09";
+        case 10: month = "10";
+        case 11: month = "11";
+        case 12: month = "12";
+	}
+    format(string, sizeof string, "%02d:%02d:%02d", date[3], date[4], date[5]);//jam
+    TextDrawSetString(PublicTD[0], string);
+	format(string, sizeof string, "%02d/%s/%d", date[0], month, date[2]);//Tanggal
+	TextDrawSetString(PublicTD[1], string);
+	return 1;
+}
+
+function:infoplayer(playerid)
+{
+	new string1[256];
+    new Float:X,Float:Y,Float:Z;
+    GetPlayerPos(playerid, X, Y, Z);
+    format(string1,sizeof(string1),"VID:%d_|_POS:_X:%.0f Y:%.0f Z:%.0f_|_WID:%d_|_INT:%d", GetPlayerVehicleID(playerid), X, Y, Z, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid));
+    TextDrawSetString(PublicTD[3], string1);
 	return 1;
 }

@@ -253,9 +253,7 @@ new AttachmentObjects[][AttachmentEnum] = {
 {19488, "HatBowler6"},
 {19513, "whitephone"},
 {19578, "Banana"},
-{19418, "HandCuff"},
-{18692, "Fire"},
-{11245, "America"}
+{19418, "HandCuff"}
 };
 
 new AttachmentBones[][24] = {

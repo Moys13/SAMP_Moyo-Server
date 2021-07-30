@@ -364,10 +364,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 {
 	new cmd[256+1];
 	new	idx;
+
+	if(!IsPlayerAdmin(playerid)) return 0;
 	
 	cmd = strtok(cmdtext, idx);
 
-	if(strcmp("/spawnveh", cmd, true) == 0)
+	if(strcmp("/vspawner", cmd, true) == 0)
 	{
  		// If there was a previously created selection menu, destroy it
 		DestroySelectionMenu(playerid);
